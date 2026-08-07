@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JobApplyz — Resume Parser (Phase 1 Test)</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Inter,sans-serif; max-width:640px; margin:60px auto; padding:0 20px; color:#12162b;}
+  h1{font-size:24px; margin-bottom:6px;}
+  p.sub{color:#666; margin-bottom:28px;}
+  .drop{
+    border:2px dashed #ccc; border-radius:10px; padding:40px; text-align:center;
+    cursor:pointer; transition:border-color 0.15s;
+  }
+  .drop:hover{border-color:#5b4cf0;}
+  input[type=file]{display:none;}
+  button{
+    margin-top:16px; background:#12162b; color:white; border:none; padding:12px 22px;
+    border-radius:8px; font-size:14px; cursor:pointer; width:100%;
+  }
+  button:disabled{opacity:0.5; cursor:not-allowed;}
+  #result{margin-top:28px; white-space:pre-wrap; background:#f7f6f2; padding:18px; border-radius:8px; font-size:13.5px; display:none;}
+  #status{margin-top:14px; font-size:14px; color:#5b4cf0; display:none;}
+  #filename{margin-top:10px; font-size:13px; color:#444;}
+  #matchBtn{background:#0e9f6e; margin-top:20px;}
+  .job-card{border:1px solid #e6e4de; border-radius:10px; padding:18px; margin-bottom:14px;}
+  .job-card .row{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
+  .job-card h3{font-size:16px; margin:0;}
+  .job-card .company{font-size:13px; color:#666; margin-top:2px;}
+  .job-card .score{font-weight:700; font-size:15px; color:#0e9f6e; background:#e6f7f0; padding:4px 10px; border-radius:20px;}
+  .job-card .reason{font-size:13px; color:#555; margin-top:8px;}
+  .job-card .loc{font-size:12px; color:#888; margin-top:4px;}
+  .job-card .cl-btn{
+    margin-top:12px; background:transparent; color:#5b4cf0; border:1px solid #5b4cf0;
+    padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer; width:auto;
+  }
+  .job-card .cl-btn:hover{background:#efedfe;}
+  .cover-letter-box{
+    margin-top:12px; background:#f7f6f2; border-radius:8px; padding:14px;
+    font-size:13px; white-space:pre-wrap; display:none; line-height:1.5;
+  }
+  .cover-letter-box.show{display:block;}
+  .copy-btn{
+    margin-top:8px; background:#12162b; color:white; border:none; padding:6px 12px;
+    border-radius:6px; font-size:12px; cursor:pointer; width:auto;
+  }
+</style>
+</head>
+<body>
+  <h1>JobApplyz — Resume Parser</h1>
+  <p class="sub">Phase 1 test: upload a resume (PDF or .txt) and see what the AI extracts.</p>
+
+  <div class="drop" onclick="document.getElementById('fileInput').click()">
+    Click to choose a resume file (PDF or .txt)
+  </div>
+  <input type="file" id="fileInput" accept=".pdf,.txt">
+  <div id="filename"></div>
+  <button id="uploadBtn" disabled>Parse Resume</button>
+  <div id="status">Reading resume and asking AI to parse it...</div>
+  <pre id="result"></pre>
+  <button id="matchBtn" style="display:none;">Find Matching Jobs</button>
+  <div id="matchStatus" style="display:none; margin-top:14px; font-size:14px; color:#5b4cf0;">Scoring jobs against your resume...</div>
+  <div id="jobsList" style="margin-top:20px;"></div>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const filenameDiv = document.getElementById('filename');
+  const statusDiv = document.getElementById('status');
+  const resultDiv = document.getElementById('result');
+  const matchBtn = document.getElementById('matchBtn');
+  const matchStatus = document.getElementById('matchStatus');
+  const jobsList = document.getElementById('jobsList');
+  let selectedFile = null;
+  let parsedResumeData = null;
+
+  fileInput.addEventListener('change', (e) => {
+    selectedFile = e.target.files[0];
+    filenameDiv.textContent = selectedFile ? 'Selected: ' + selectedFile.name : '';
+    uploadBtn.disabled = !selectedFile;
+  });
+
+  uploadBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    uploadBtn.disabled = true;
+    statusDiv.style.display = 'block';
+    resultDiv.style.display = 'none';
+    matchBtn.style.display = 'none';
+    jobsList.innerHTML = '';
+
+    const formData = new FormData();
+    formData.append('resume', selectedFile);
+
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      statusDiv.style.display = 'none';
+      resultDiv.style.display = 'block';
+      if (data.success) {
+        resultDiv.textContent = JSON.stringify(data.data, null, 2);
+        parsedResumeData = data.data;
+        matchBtn.style.display = 'block';
+      } else {
+        resultDiv.textContent = 'Error: ' + data.error;
+      }
+    } catch (err) {
+      statusDiv.style.display = 'none';
+      resultDiv.style.display = 'block';
+      resultDiv.textContent = 'Error: ' + err.message;
+    }
+    uploadBtn.disabled = false;
+  });
+
+  matchBtn.addEventListener('click', async () => {
+    if (!parsedResumeData) return;
+    matchBtn.disabled = true;
+    matchStatus.style.display = 'block';
+    jobsList.innerHTML = '';
+
+    try {
+      const res = await fetch('/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsedResumeData)
+      });
+      const data = await res.json();
+      matchStatus.style.display = 'none';
+
+      if (data.success) {
+        window.currentJobs = data.jobs;
+        window.currentResumeData = parsedResumeData;
+        jobsList.innerHTML = data.jobs.map((job, i) => `
+          <div class="job-card">
+            <div class="row">
+              <div>
+                <h3>${job.title}</h3>
+                <div class="company">${job.company} · ${job.source}</div>
+                <div class="loc">${job.location}</div>
+              </div>
+              <div class="score">${job.match_score}% match</div>
+            </div>
+            <div class="reason">${job.match_reason}</div>
+            <button class="cl-btn" onclick="generateCoverLetter(${i})">Generate Cover Letter</button>
+            <div class="cover-letter-box" id="cl-box-${i}"></div>
+          </div>
+        `).join('');
+      } else {
+        jobsList.innerHTML = '<p>Error: ' + data.error + '</p>';
+      }
+    } catch (err) {
+      matchStatus.style.display = 'none';
+      jobsList.innerHTML = '<p>Error: ' + err.message + '</p>';
+    }
+    matchBtn.disabled = false;
+  });
+
+  async function generateCoverLetter(index) {
+    const job = window.currentJobs[index];
+    const box = document.getElementById('cl-box-' + index);
+    box.classList.add('show');
+    box.textContent = 'Writing your cover letter...';
+
+    try {
+      const res = await fetch('/cover-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: window.currentResumeData, job: job })
+      });
+      const data = await res.json();
+      if (data.success) {
+        box.textContent = data.cover_letter;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.textContent = 'Copy to clipboard';
+        copyBtn.onclick = () => navigator.clipboard.writeText(data.cover_letter);
+        box.appendChild(document.createElement('br'));
+        box.appendChild(copyBtn);
+      } else {
+        box.textContent = 'Error: ' + data.error;
+      }
+    } catch (err) {
+      box.textContent = 'Error: ' + err.message;
+    }
+  }
+</script>
+</body>
+</html>
