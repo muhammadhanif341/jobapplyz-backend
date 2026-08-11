@@ -31,6 +31,12 @@ COMMON_SKILLS = [
     "Java", "C++", "C#", "SQL", "PostgreSQL", "MySQL", "MongoDB", "AWS", "Azure",
     "Docker", "Kubernetes", "Git", "HTML", "CSS", "Excel", "PowerPoint",
     "Communication", "Project Management", "Sales", "Marketing", "Accounting",
+    "Maintenance", "Production", "Plant Operations", "Equipment Reliability",
+    "Preventive Maintenance", "Quality Control", "Safety Management", "Logistics",
+    "Supply Chain", "Procurement", "SAP", "Six Sigma", "Lean Manufacturing",
+    "Team Leadership", "Budgeting", "Customer Service", "Nursing", "Teaching",
+    "Civil Engineering", "Mechanical Engineering", "Electrical Engineering",
+    "HVAC", "AutoCAD", "Welding", "Operations Management", "Inventory Management",
 ]
 
 
@@ -40,18 +46,30 @@ def mock_parse_resume(resume_text):
     email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", resume_text)
     phone_match = re.search(r"(\+?\d[\d\-\s]{7,}\d)", resume_text)
     found_skills = [s for s in COMMON_SKILLS if s.lower() in resume_text.lower()]
-    first_line = resume_text.strip().split("\n")[0].strip()
+    lines = [l.strip() for l in resume_text.strip().split("\n") if l.strip()]
+    first_line = lines[0] if lines else ""
+
+    # Heuristic: the line right after the name is often the job title on
+    # most resumes (e.g. "MUHAMMAD HANIF" / "Maintenance & Production Manager").
+    guessed_title = None
+    if len(lines) > 1:
+        candidate = lines[1]
+        if len(candidate) < 60 and "@" not in candidate and not re.search(r"\d{3,}", candidate):
+            guessed_title = candidate
+
+    job_titles = [guessed_title] if guessed_title else []
+    search_keywords = ([guessed_title] if guessed_title else []) + found_skills[:4]
 
     return {
         "full_name": first_line if len(first_line) < 60 else None,
         "email": email_match.group(0) if email_match else None,
         "phone": phone_match.group(0) if phone_match else None,
-        "job_titles": [],
+        "job_titles": job_titles,
         "years_experience": None,
         "skills": found_skills,
         "education": [],
         "summary": "(Mock mode: this is a basic keyword extraction, not real AI parsing. Add API credits and set MOCK_MODE=false for full accuracy.)",
-        "suggested_search_keywords": found_skills[:5],
+        "suggested_search_keywords": search_keywords[:5],
     }
 
 
@@ -168,7 +186,18 @@ def match_jobs():
     if not resume_data:
         return jsonify({"error": "No resume data provided"}), 400
 
-    jobs = load_sample_jobs()
+    # Build a real search query from the resume instead of a hardcoded default,
+    # so job results actually relate to this person's field.
+    job_titles = resume_data.get("job_titles") or []
+    keywords = resume_data.get("suggested_search_keywords") or []
+    if job_titles:
+        query = job_titles[0]
+    elif keywords:
+        query = keywords[0]
+    else:
+        query = "jobs"
+
+    jobs = load_sample_jobs(query=query)
 
     try:
         if MOCK_MODE:
@@ -216,4 +245,6 @@ if __name__ == "__main__":
     else:
         print("MOCK MODE: OFF (using real Anthropic API — will cost credits)")
     print("=" * 50)
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "true").lower() == "true"
+    app.run(debug=debug_mode, host="0.0.0.0", port=port)

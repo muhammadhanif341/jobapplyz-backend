@@ -1,8 +1,9 @@
 import json
+import os
+import requests
 
-# Sample job listings — realistic but static data for testing the matching
-# engine before we plug in real scraping from Rozee.pk, Bayt, etc.
-
+# Sample job listings — used as a fallback when no real API key is set,
+# or if the live API call fails for any reason.
 SAMPLE_JOBS = [
     {
         "id": 1,
@@ -97,9 +98,75 @@ SAMPLE_JOBS = [
 ]
 
 
-def load_sample_jobs():
+RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
+JSEARCH_HOST = "jsearch.p.rapidapi.com"
+
+# Countries in our target market. JSearch uses ISO country codes.
+TARGET_COUNTRIES = ["pk", "ae", "sa", "qa", "om"]
+
+
+def fetch_real_jobs(query="software engineer", country="pk", num_pages=1):
+    """Fetch live job listings from the JSearch API (covers LinkedIn, Indeed,
+    Glassdoor, Bayt, and more). Returns a list of jobs in our standard format,
+    or an empty list if the API call fails."""
+    if not RAPIDAPI_KEY:
+        return []
+
+    url = f"https://{JSEARCH_HOST}/search-v2"
+    headers = {
+        "X-RapidAPI-Key": RAPIDAPI_KEY,
+        "X-RapidAPI-Host": JSEARCH_HOST,
+    }
+    params = {
+        "query": query,
+        "country": country,
+        "num_pages": str(num_pages),
+        "date_posted": "all",
+    }
+
+    try:
+        try:
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+        except requests.exceptions.Timeout:
+            print("[JSearch API] First attempt timed out, retrying once...")
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+        print(f"[JSearch API] Status code: {response.status_code}")
+        print(f"[JSearch API] Raw response (first 500 chars): {response.text[:500]}")
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        print(f"[JSearch API] Failed to fetch jobs: {e}")
+        return []
+
+    jobs = []
+    job_list = data.get("data", {})
+    if isinstance(job_list, dict):
+        job_list = job_list.get("jobs", [])
+
+    for i, item in enumerate(job_list):
+        jobs.append({
+            "id": item.get("job_id", str(i)),
+            "title": item.get("job_title", "Unknown title"),
+            "company": item.get("employer_name", "Unknown company"),
+            "location": item.get("job_city") or item.get("job_country", "Unknown location"),
+            "description": (item.get("job_description") or "")[:800],
+            "required_skills": item.get("job_required_skills") or [],
+            "source": item.get("job_publisher", "JSearch"),
+            "apply_link": item.get("job_apply_link", ""),
+        })
+    return jobs
+
+
+def load_sample_jobs(query="software engineer", country="pk"):
+    """Returns real jobs if RAPIDAPI_KEY is set and the API call succeeds,
+    otherwise falls back to static sample jobs (useful for free testing)."""
+    if RAPIDAPI_KEY:
+        real_jobs = fetch_real_jobs(query=query, country=country)
+        if real_jobs:
+            return real_jobs
+        print("[JSearch API] No real jobs returned, falling back to sample jobs.")
     return SAMPLE_JOBS
 
 
 if __name__ == "__main__":
-    print(json.dumps(SAMPLE_JOBS, indent=2))
+    print(json.dumps(load_sample_jobs(), indent=2))

@@ -10,18 +10,28 @@ def mock_match_jobs(resume_data, jobs):
     results = []
     for job in jobs:
         required = set(s.lower() for s in job.get("required_skills", []))
-        if not required:
-            score = 0
-        else:
-            overlap = resume_skills & required
-            score = round(len(overlap) / len(required) * 100)
+        description = (job.get("description") or "").lower()
+        title = (job.get("title") or "").lower()
 
-        matched_skills = [s for s in job["required_skills"] if s.lower() in resume_skills]
+        if required:
+            # Job listing explicitly states required skills (e.g. our sample data)
+            overlap = resume_skills & required
+            score = round(len(overlap) / len(required) * 100) if required else 0
+            matched_skills = [s for s in job.get("required_skills", []) if s.lower() in resume_skills]
+        else:
+            # Real API jobs often don't have a required_skills list — fall back
+            # to checking which of the candidate's skills appear in the job's
+            # title or description text instead.
+            matched_skills = [s for s in resume_data.get("skills", []) if s.lower() in description or s.lower() in title]
+            # Score based on how many of the candidate's OWN skills showed up,
+            # capped so a couple of matches still look meaningful.
+            score = min(round(len(matched_skills) / max(len(resume_skills), 1) * 100), 100) if matched_skills else 0
+
         results.append({
             **job,
             "match_score": score,
             "matched_skills": matched_skills,
-            "match_reason": f"Matched {len(matched_skills)} of {len(job['required_skills'])} required skills." if matched_skills else "No overlapping skills found.",
+            "match_reason": f"Matched on: {', '.join(matched_skills)}." if matched_skills else "No overlapping skills found in this listing.",
         })
 
     results.sort(key=lambda j: j["match_score"], reverse=True)
