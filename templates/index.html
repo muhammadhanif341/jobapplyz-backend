@@ -2,74 +2,181 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>JobApplyz — Resume Parser (Phase 1 Test)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobApplyz — Resume &amp; Job Matching</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  body{font-family:-apple-system,Segoe UI,Inter,sans-serif; max-width:640px; margin:60px auto; padding:0 20px; color:#12162b;}
-  h1{font-size:24px; margin-bottom:6px;}
-  p.sub{color:#666; margin-bottom:28px;}
+  :root{
+    --ink:#12162b; --ink-soft:#4b4f66; --paper:#faf9f6; --paper-dim:#f0eee8;
+    --card:#ffffff; --emerald:#0e9f6e; --emerald-soft:#e6f7f0;
+    --violet:#5b4cf0; --violet-soft:#efedfe; --line:#e6e4de;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  nav{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 6vw; border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
+  .brand-mark{
+    width:30px; height:30px; border-radius:8px; background:var(--ink);
+    display:flex; align-items:center; justify-content:center; color:var(--paper);
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+  }
+  .brand-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px;}
+  .nav-tag{font-size:12px; color:var(--ink-soft);}
+
+  main{max-width:720px; margin:0 auto; padding:6vh 6vw 10vh;}
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; background:var(--violet-soft);
+    color:var(--violet); font-size:12.5px; font-weight:600; padding:6px 13px 6px 11px;
+    border-radius:20px; margin-bottom:18px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--emerald); display:inline-block;}
+  h1{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30px; letter-spacing:-0.01em; margin-bottom:8px;}
+  .sub{color:var(--ink-soft); font-size:15px; margin-bottom:36px;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:26px; margin-bottom:20px;
+  }
+  .card-label{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--violet);
+    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:14px; display:block;
+  }
+
   .drop{
-    border:2px dashed #ccc; border-radius:10px; padding:40px; text-align:center;
-    cursor:pointer; transition:border-color 0.15s;
+    border:1.5px dashed var(--line); border-radius:10px; padding:32px; text-align:center;
+    cursor:pointer; transition:border-color 0.15s, background 0.15s;
   }
-  .drop:hover{border-color:#5b4cf0;}
+  .drop:hover{border-color:var(--violet); background:var(--violet-soft);}
+  .drop-icon{font-size:22px; margin-bottom:8px;}
+  .drop-text{font-size:14px; color:var(--ink-soft);}
   input[type=file]{display:none;}
+  #filename{margin-top:12px; font-size:13px; color:var(--ink); font-weight:500;}
+
   button{
-    margin-top:16px; background:#12162b; color:white; border:none; padding:12px 22px;
-    border-radius:8px; font-size:14px; cursor:pointer; width:100%;
+    font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:8px;
+    font-size:14px; font-weight:600; transition:background 0.15s, opacity 0.15s;
   }
-  button:disabled{opacity:0.5; cursor:not-allowed;}
-  #result{margin-top:28px; white-space:pre-wrap; background:#f7f6f2; padding:18px; border-radius:8px; font-size:13.5px; display:none;}
-  #status{margin-top:14px; font-size:14px; color:#5b4cf0; display:none;}
-  #filename{margin-top:10px; font-size:13px; color:#444;}
-  #matchBtn{background:#0e9f6e; margin-top:20px;}
-  .job-card{border:1px solid #e6e4de; border-radius:10px; padding:18px; margin-bottom:14px;}
-  .job-card .row{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
-  .job-card h3{font-size:16px; margin:0;}
-  .job-card .company{font-size:13px; color:#666; margin-top:2px;}
-  .job-card .score{font-weight:700; font-size:15px; color:#0e9f6e; background:#e6f7f0; padding:4px 10px; border-radius:20px;}
-  .job-card .reason{font-size:13px; color:#555; margin-top:8px;}
-  .job-card .loc{font-size:12px; color:#888; margin-top:4px;}
-  .job-card .cl-btn{
-    margin-top:12px; background:transparent; color:#5b4cf0; border:1px solid #5b4cf0;
-    padding:8px 14px; border-radius:6px; font-size:13px; cursor:pointer; width:auto;
+  button:disabled{opacity:0.45; cursor:not-allowed;}
+  .btn-primary{background:var(--ink); color:var(--paper); padding:13px 20px; width:100%; margin-top:16px;}
+  .btn-primary:hover:not(:disabled){background:var(--violet);}
+  .btn-secondary{background:var(--emerald); color:white; padding:13px 20px; width:100%;}
+  .btn-secondary:hover:not(:disabled){background:#0c8a5f;}
+  .btn-outline{
+    background:transparent; color:var(--violet); border:1px solid var(--violet);
+    padding:8px 14px; font-size:12.5px;
   }
-  .job-card .cl-btn:hover{background:#efedfe;}
-  .cover-letter-box{
-    margin-top:12px; background:#f7f6f2; border-radius:8px; padding:14px;
-    font-size:13px; white-space:pre-wrap; display:none; line-height:1.5;
+  .btn-outline:hover:not(:disabled){background:var(--violet-soft);}
+  .btn-dark{background:var(--ink); color:var(--paper); padding:7px 13px; font-size:12px;}
+
+  .status-line{
+    display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--violet);
+    margin-top:14px; display:none;
   }
-  .cover-letter-box.show{display:block;}
-  .copy-btn{
-    margin-top:8px; background:#12162b; color:white; border:none; padding:6px 12px;
-    border-radius:6px; font-size:12px; cursor:pointer; width:auto;
+  .status-line.show{display:flex;}
+  .spinner{
+    width:13px; height:13px; border:2px solid var(--violet-soft); border-top-color:var(--violet);
+    border-radius:50%; animation:spin 0.7s linear infinite;
   }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .profile-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;}
+  .profile-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px;}
+  .profile-contact{font-size:12.5px; color:var(--ink-soft); margin-top:6px;}
+  .profile-summary{font-size:14px; color:#333; line-height:1.6; margin:16px 0; padding-top:16px; border-top:1px solid var(--line);}
+  .chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:6px;}
+  .chip{
+    background:var(--paper-dim); color:var(--ink); font-size:12px; font-weight:500;
+    padding:5px 11px; border-radius:20px;
+  }
+  .field-label{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-top:16px; margin-bottom:8px; font-weight:600;}
+  .mock-note{
+    margin-top:18px; padding:12px 14px; background:#fff8ea; border:1px solid #f0dcb0;
+    border-radius:8px; font-size:12.5px; color:#7a5a1f;
+  }
+
+  .section-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; margin:36px 0 16px;}
+  .job-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:20px; margin-bottom:14px;
+  }
+  .job-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+  .job-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;}
+  .job-company{font-size:13px; color:var(--ink-soft); margin-top:3px;}
+  .job-loc{font-size:12px; color:#9b9aa8; margin-top:3px;}
+  .score-pill{
+    font-family:'JetBrains Mono',monospace; font-weight:600; font-size:13px;
+    padding:5px 12px; border-radius:20px; white-space:nowrap;
+  }
+  .score-high{background:var(--emerald-soft); color:var(--emerald);}
+  .score-mid{background:#fff3d9; color:#a3720c;}
+  .score-low{background:var(--paper-dim); color:var(--ink-soft);}
+  .job-reason{font-size:13px; color:#555; margin-top:10px;}
+  .cl-box{
+    margin-top:14px; background:var(--paper-dim); border-radius:8px; padding:16px;
+    font-size:13.5px; line-height:1.6; white-space:pre-wrap; display:none;
+  }
+  .cl-box.show{display:block;}
+
+  .empty-state{text-align:center; padding:30px; color:var(--ink-soft); font-size:14px;}
+
+  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} }
 </style>
 </head>
 <body>
-  <h1>JobApplyz — Resume Parser</h1>
-  <p class="sub">Phase 1 test: upload a resume (PDF or .txt) and see what the AI extracts.</p>
 
-  <div class="drop" onclick="document.getElementById('fileInput').click()">
-    Click to choose a resume file (PDF or .txt)
+<nav>
+  <a href="/" class="brand">
+    <div class="brand-mark">J</div>
+    <div class="brand-name">JobApplyz</div>
+  </a>
+  <div class="nav-tag mono">RESUME &amp; MATCHING TOOL</div>
+</nav>
+
+<main>
+  <div class="eyebrow"><span class="dot"></span> Step 1 of 3</div>
+  <h1>Upload your resume</h1>
+  <p class="sub">We'll read it, match you with real openings, and draft a tailored cover letter for each one.</p>
+
+  <div class="card">
+    <span class="card-label">Resume file</span>
+    <div class="drop" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">📄</div>
+      <div class="drop-text">Click to choose a PDF or .txt file</div>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf,.txt">
+    <div id="filename"></div>
+    <button class="btn-primary" id="uploadBtn" disabled>Parse Resume</button>
+    <div class="status-line" id="status"><div class="spinner"></div> Reading resume and extracting details...</div>
   </div>
-  <input type="file" id="fileInput" accept=".pdf,.txt">
-  <div id="filename"></div>
-  <button id="uploadBtn" disabled>Parse Resume</button>
-  <div id="status">Reading resume and asking AI to parse it...</div>
-  <pre id="result"></pre>
-  <button id="matchBtn" style="display:none;">Find Matching Jobs</button>
-  <div id="matchStatus" style="display:none; margin-top:14px; font-size:14px; color:#5b4cf0;">Scoring jobs against your resume...</div>
-  <div id="jobsList" style="margin-top:20px;"></div>
+
+  <div id="profileCardWrap"></div>
+
+  <div id="matchSection" style="display:none;">
+    <button class="btn-secondary" id="matchBtn">Find Matching Jobs</button>
+    <div class="status-line" id="matchStatus"><div class="spinner"></div> Scoring live job listings against your resume...</div>
+  </div>
+
+  <div id="jobsSection"></div>
+</main>
 
 <script>
   const fileInput = document.getElementById('fileInput');
   const uploadBtn = document.getElementById('uploadBtn');
   const filenameDiv = document.getElementById('filename');
   const statusDiv = document.getElementById('status');
-  const resultDiv = document.getElementById('result');
+  const profileCardWrap = document.getElementById('profileCardWrap');
+  const matchSection = document.getElementById('matchSection');
   const matchBtn = document.getElementById('matchBtn');
   const matchStatus = document.getElementById('matchStatus');
-  const jobsList = document.getElementById('jobsList');
+  const jobsSection = document.getElementById('jobsSection');
   let selectedFile = null;
   let parsedResumeData = null;
 
@@ -79,13 +186,42 @@
     uploadBtn.disabled = !selectedFile;
   });
 
+  function renderProfileCard(data) {
+    const isMock = (data.summary || '').includes('Mock mode');
+    const cleanSummary = (data.summary || '').replace(/\(Mock mode:.*?\)/, '').trim();
+
+    const skillsHtml = (data.skills && data.skills.length)
+      ? `<div class="field-label">Skills</div><div class="chip-row">${data.skills.map(s => `<span class="chip">${s}</span>`).join('')}</div>`
+      : '';
+
+    const titlesHtml = (data.job_titles && data.job_titles.length)
+      ? `<div class="field-label">Role</div><div class="chip-row">${data.job_titles.map(t => `<span class="chip">${t}</span>`).join('')}</div>`
+      : '';
+
+    profileCardWrap.innerHTML = `
+      <div class="card">
+        <span class="card-label">Parsed profile</span>
+        <div class="profile-head">
+          <div>
+            <div class="profile-name">${data.full_name || 'Name not found'}</div>
+            <div class="profile-contact">${[data.email, data.phone].filter(Boolean).join(' · ')}</div>
+          </div>
+        </div>
+        ${cleanSummary ? `<div class="profile-summary">${cleanSummary}</div>` : ''}
+        ${titlesHtml}
+        ${skillsHtml}
+        ${isMock ? '<div class="mock-note">⚡ Running in Mock Mode — this is a lightweight keyword extraction, not full AI parsing. Results improve once real AI mode is enabled.</div>' : ''}
+      </div>
+    `;
+  }
+
   uploadBtn.addEventListener('click', async () => {
     if (!selectedFile) return;
     uploadBtn.disabled = true;
-    statusDiv.style.display = 'block';
-    resultDiv.style.display = 'none';
-    matchBtn.style.display = 'none';
-    jobsList.innerHTML = '';
+    statusDiv.classList.add('show');
+    profileCardWrap.innerHTML = '';
+    matchSection.style.display = 'none';
+    jobsSection.innerHTML = '';
 
     const formData = new FormData();
     formData.append('resume', selectedFile);
@@ -93,28 +229,32 @@
     try {
       const res = await fetch('/upload', { method: 'POST', body: formData });
       const data = await res.json();
-      statusDiv.style.display = 'none';
-      resultDiv.style.display = 'block';
+      statusDiv.classList.remove('show');
       if (data.success) {
-        resultDiv.textContent = JSON.stringify(data.data, null, 2);
         parsedResumeData = data.data;
-        matchBtn.style.display = 'block';
+        renderProfileCard(data.data);
+        matchSection.style.display = 'block';
       } else {
-        resultDiv.textContent = 'Error: ' + data.error;
+        profileCardWrap.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${data.error}</div>`;
       }
     } catch (err) {
-      statusDiv.style.display = 'none';
-      resultDiv.style.display = 'block';
-      resultDiv.textContent = 'Error: ' + err.message;
+      statusDiv.classList.remove('show');
+      profileCardWrap.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${err.message}</div>`;
     }
     uploadBtn.disabled = false;
   });
 
+  function scoreClass(score) {
+    if (score >= 60) return 'score-high';
+    if (score >= 30) return 'score-mid';
+    return 'score-low';
+  }
+
   matchBtn.addEventListener('click', async () => {
     if (!parsedResumeData) return;
     matchBtn.disabled = true;
-    matchStatus.style.display = 'block';
-    jobsList.innerHTML = '';
+    matchStatus.classList.add('show');
+    jobsSection.innerHTML = '';
 
     try {
       const res = await fetch('/match', {
@@ -123,32 +263,35 @@
         body: JSON.stringify(parsedResumeData)
       });
       const data = await res.json();
-      matchStatus.style.display = 'none';
+      matchStatus.classList.remove('show');
 
       if (data.success) {
         window.currentJobs = data.jobs;
-        window.currentResumeData = parsedResumeData;
-        jobsList.innerHTML = data.jobs.map((job, i) => `
+        if (data.jobs.length === 0) {
+          jobsSection.innerHTML = '<div class="section-title">Matching jobs</div><div class="card empty-state">No jobs found for this search right now. Try a different resume or check back later.</div>';
+          return;
+        }
+        jobsSection.innerHTML = '<div class="section-title">Matching jobs</div>' + data.jobs.map((job, i) => `
           <div class="job-card">
-            <div class="row">
+            <div class="job-row">
               <div>
-                <h3>${job.title}</h3>
-                <div class="company">${job.company} · ${job.source}</div>
-                <div class="loc">${job.location}</div>
+                <div class="job-title">${job.title}</div>
+                <div class="job-company">${job.company}${job.source ? ' · ' + job.source : ''}</div>
+                <div class="job-loc">${job.location || ''}</div>
               </div>
-              <div class="score">${job.match_score}% match</div>
+              <div class="score-pill ${scoreClass(job.match_score)}">${job.match_score}% match</div>
             </div>
-            <div class="reason">${job.match_reason}</div>
-            <button class="cl-btn" onclick="generateCoverLetter(${i})">Generate Cover Letter</button>
-            <div class="cover-letter-box" id="cl-box-${i}"></div>
+            <div class="job-reason">${job.match_reason}</div>
+            <button class="btn-outline" style="margin-top:12px;" onclick="generateCoverLetter(${i})">Generate Cover Letter</button>
+            <div class="cl-box" id="cl-box-${i}"></div>
           </div>
         `).join('');
       } else {
-        jobsList.innerHTML = '<p>Error: ' + data.error + '</p>';
+        jobsSection.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${data.error}</div>`;
       }
     } catch (err) {
-      matchStatus.style.display = 'none';
-      jobsList.innerHTML = '<p>Error: ' + err.message + '</p>';
+      matchStatus.classList.remove('show');
+      jobsSection.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${err.message}</div>`;
     }
     matchBtn.disabled = false;
   });
@@ -163,13 +306,14 @@
       const res = await fetch('/cover-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resume: window.currentResumeData, job: job })
+        body: JSON.stringify({ resume: parsedResumeData, job: job })
       });
       const data = await res.json();
       if (data.success) {
         box.textContent = data.cover_letter;
         const copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-btn';
+        copyBtn.className = 'btn-dark';
+        copyBtn.style.marginTop = '10px';
         copyBtn.textContent = 'Copy to clipboard';
         copyBtn.onclick = () => navigator.clipboard.writeText(data.cover_letter);
         box.appendChild(document.createElement('br'));
@@ -182,5 +326,6 @@
     }
   }
 </script>
+
 </body>
 </html>
