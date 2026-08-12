@@ -182,22 +182,28 @@ def upload_resume():
 
 @app.route("/match", methods=["POST"])
 def match_jobs():
-    resume_data = request.get_json()
-    if not resume_data:
+    payload = request.get_json()
+    if not payload:
         return jsonify({"error": "No resume data provided"}), 400
 
-    # Build a real search query from the resume instead of a hardcoded default,
-    # so job results actually relate to this person's field.
+    # Onboarding preferences (if provided) take priority over resume-derived guesses
+    resume_data = payload.get("resume", payload)
+    preferred_query = payload.get("preferred_query")
+    preferred_country = payload.get("preferred_country")
+
     job_titles = resume_data.get("job_titles") or []
     keywords = resume_data.get("suggested_search_keywords") or []
-    if job_titles:
+    if preferred_query:
+        query = preferred_query
+    elif job_titles:
         query = job_titles[0]
     elif keywords:
         query = keywords[0]
     else:
         query = "jobs"
 
-    jobs = load_sample_jobs(query=query)
+    country = preferred_country or "pk"
+    jobs = load_sample_jobs(query=query, country=country)
 
     try:
         if MOCK_MODE:

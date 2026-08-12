@@ -3,19 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JobApplyz — Resume &amp; Job Matching</title>
+<title>JobApplyz — Your AI job search assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#12162b; --ink-soft:#4b4f66; --paper:#faf9f6; --paper-dim:#f0eee8;
     --card:#ffffff; --emerald:#0e9f6e; --emerald-soft:#e6f7f0;
-    --violet:#5b4cf0; --violet-soft:#efedfe; --line:#e6e4de;
+    --violet:#5b4cf0; --violet-soft:#efedfe; --line:#e6e4de; --amber:#a3720c; --amber-soft:#fff3d9;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
   .display{font-family:'Space Grotesk',sans-serif;}
   .mono{font-family:'JetBrains Mono',monospace;}
+  button{font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:8px; font-size:14px; font-weight:600; transition:background 0.15s, opacity 0.15s, transform 0.1s;}
+  button:disabled{opacity:0.4; cursor:not-allowed;}
 
   nav{
     display:flex; justify-content:space-between; align-items:center;
@@ -30,61 +32,109 @@
   .brand-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px;}
   .nav-tag{font-size:12px; color:var(--ink-soft);}
 
-  main{max-width:720px; margin:0 auto; padding:6vh 6vw 10vh;}
+  /* ============ ONBOARDING ============ */
+  #view-onboarding{
+    min-height:calc(100vh - 73px); display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:6vh 6vw;
+  }
+  .ob-progress{display:flex; gap:6px; margin-bottom:40px;}
+  .ob-dot{width:34px; height:4px; border-radius:2px; background:var(--line); transition:background 0.2s;}
+  .ob-dot.active{background:var(--violet);}
+  .ob-dot.done{background:var(--emerald);}
 
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px; background:var(--violet-soft);
-    color:var(--violet); font-size:12.5px; font-weight:600; padding:6px 13px 6px 11px;
-    border-radius:20px; margin-bottom:18px;
-  }
-  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--emerald); display:inline-block;}
-  h1{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30px; letter-spacing:-0.01em; margin-bottom:8px;}
-  .sub{color:var(--ink-soft); font-size:15px; margin-bottom:36px;}
+  .ob-panel{width:100%; max-width:520px; text-align:center;}
+  .ob-step{display:none;}
+  .ob-step.active{display:block; animation:fadeUp 0.35s ease;}
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
-  .card{
-    background:var(--card); border:1px solid var(--line); border-radius:14px;
-    padding:26px; margin-bottom:20px;
-  }
-  .card-label{
-    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--violet);
-    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:14px; display:block;
-  }
+  .ob-eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--violet); margin-bottom:14px; text-transform:uppercase; letter-spacing:0.05em;}
+  .ob-question{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; letter-spacing:-0.01em; margin-bottom:8px;}
+  .ob-hint{color:var(--ink-soft); font-size:14px; margin-bottom:30px;}
 
-  .drop{
-    border:1.5px dashed var(--line); border-radius:10px; padding:32px; text-align:center;
-    cursor:pointer; transition:border-color 0.15s, background 0.15s;
+  .chip-grid{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:26px;}
+  .ob-chip{
+    background:var(--card); border:1.5px solid var(--line); border-radius:10px;
+    padding:13px 20px; font-size:14px; font-weight:600; cursor:pointer; color:var(--ink);
+    transition:all 0.15s;
   }
+  .ob-chip:hover{border-color:var(--violet); background:var(--violet-soft);}
+  .ob-chip.selected{border-color:var(--violet); background:var(--violet); color:white;}
+
+  .ob-input{
+    width:100%; padding:15px 18px; border:1.5px solid var(--line); border-radius:10px;
+    font-size:15px; font-family:'Inter',sans-serif; margin-bottom:14px; text-align:center;
+  }
+  .ob-input:focus{outline:none; border-color:var(--violet);}
+
+  .ob-nav{display:flex; justify-content:center; gap:12px; margin-top:8px;}
+  .ob-btn-next{background:var(--ink); color:var(--paper); padding:13px 32px;}
+  .ob-btn-next:hover:not(:disabled){background:var(--violet);}
+  .ob-btn-back{background:transparent; color:var(--ink-soft); padding:13px 18px;}
+  .ob-btn-back:hover{color:var(--ink);}
+
+  .ob-summary{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px;
+    text-align:left; margin-bottom:26px;
+  }
+  .ob-summary-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .ob-summary-row:last-child{border-bottom:none;}
+  .ob-summary-row .k{color:var(--ink-soft);}
+  .ob-summary-row .v{font-weight:600;}
+
+  /* ============ DASHBOARD ============ */
+  #view-dashboard{display:none;}
+  main{max-width:900px; margin:0 auto; padding:5vh 6vw 10vh;}
+
+  .greet-bar{
+    display:flex; justify-content:space-between; align-items:center; background:var(--ink); color:var(--paper);
+    border-radius:14px; padding:22px 26px; margin-bottom:34px;
+  }
+  .greet-text{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px;}
+  .greet-sub{font-size:12.5px; color:#b7b8c9; margin-top:4px;}
+  .edit-link{background:rgba(255,255,255,0.1); color:var(--paper); padding:8px 14px; font-size:12.5px; border-radius:7px;}
+  .edit-link:hover{background:rgba(255,255,255,0.18);}
+
+  .section-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:38px 0 16px;}
+  .section-title:first-of-type{margin-top:0;}
+
+  .toolkit-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;}
+  .tool-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px;
+    cursor:pointer; transition:border-color 0.15s, transform 0.1s; position:relative;
+  }
+  .tool-card:hover{border-color:var(--violet); transform:translateY(-2px);}
+  .tool-card.active-tool{border-color:var(--emerald);}
+  .tool-icon{font-size:20px; margin-bottom:10px;}
+  .tool-name{font-weight:600; font-size:13.5px; margin-bottom:4px;}
+  .tool-desc{font-size:11.5px; color:var(--ink-soft); line-height:1.4;}
+  .tool-badge{
+    position:absolute; top:14px; right:14px; font-size:9.5px; font-weight:700; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; letter-spacing:0.03em;
+  }
+  .badge-live{background:var(--emerald-soft); color:var(--emerald);}
+  .badge-soon{background:var(--paper-dim); color:var(--ink-soft);}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px; margin-bottom:20px;}
+  .card-label{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--violet); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:14px; display:block;}
+
+  .drop{border:1.5px dashed var(--line); border-radius:10px; padding:32px; text-align:center; cursor:pointer; transition:border-color 0.15s, background 0.15s;}
   .drop:hover{border-color:var(--violet); background:var(--violet-soft);}
   .drop-icon{font-size:22px; margin-bottom:8px;}
   .drop-text{font-size:14px; color:var(--ink-soft);}
   input[type=file]{display:none;}
   #filename{margin-top:12px; font-size:13px; color:var(--ink); font-weight:500;}
 
-  button{
-    font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:8px;
-    font-size:14px; font-weight:600; transition:background 0.15s, opacity 0.15s;
-  }
-  button:disabled{opacity:0.45; cursor:not-allowed;}
   .btn-primary{background:var(--ink); color:var(--paper); padding:13px 20px; width:100%; margin-top:16px;}
   .btn-primary:hover:not(:disabled){background:var(--violet);}
   .btn-secondary{background:var(--emerald); color:white; padding:13px 20px; width:100%;}
   .btn-secondary:hover:not(:disabled){background:#0c8a5f;}
-  .btn-outline{
-    background:transparent; color:var(--violet); border:1px solid var(--violet);
-    padding:8px 14px; font-size:12.5px;
-  }
+  .btn-outline{background:transparent; color:var(--violet); border:1px solid var(--violet); padding:8px 14px; font-size:12.5px;}
   .btn-outline:hover:not(:disabled){background:var(--violet-soft);}
   .btn-dark{background:var(--ink); color:var(--paper); padding:7px 13px; font-size:12px;}
 
-  .status-line{
-    display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--violet);
-    margin-top:14px; display:none;
-  }
+  .status-line{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--violet); margin-top:14px; display:none;}
   .status-line.show{display:flex;}
-  .spinner{
-    width:13px; height:13px; border:2px solid var(--violet-soft); border-top-color:var(--violet);
-    border-radius:50%; animation:spin 0.7s linear infinite;
-  }
+  .spinner{width:13px; height:13px; border:2px solid var(--violet-soft); border-top-color:var(--violet); border-radius:50%; animation:spin 0.7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
   .profile-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;}
@@ -92,42 +142,36 @@
   .profile-contact{font-size:12.5px; color:var(--ink-soft); margin-top:6px;}
   .profile-summary{font-size:14px; color:#333; line-height:1.6; margin:16px 0; padding-top:16px; border-top:1px solid var(--line);}
   .chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:6px;}
-  .chip{
-    background:var(--paper-dim); color:var(--ink); font-size:12px; font-weight:500;
-    padding:5px 11px; border-radius:20px;
-  }
+  .chip{background:var(--paper-dim); color:var(--ink); font-size:12px; font-weight:500; padding:5px 11px; border-radius:20px;}
   .field-label{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-top:16px; margin-bottom:8px; font-weight:600;}
-  .mock-note{
-    margin-top:18px; padding:12px 14px; background:#fff8ea; border:1px solid #f0dcb0;
-    border-radius:8px; font-size:12.5px; color:#7a5a1f;
-  }
+  .mock-note{margin-top:18px; padding:12px 14px; background:var(--amber-soft); border:1px solid #f0dcb0; border-radius:8px; font-size:12.5px; color:var(--amber);}
 
-  .section-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; margin:36px 0 16px;}
-  .job-card{
-    background:var(--card); border:1px solid var(--line); border-radius:12px;
-    padding:20px; margin-bottom:14px;
-  }
+  .job-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:14px;}
   .job-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
   .job-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;}
   .job-company{font-size:13px; color:var(--ink-soft); margin-top:3px;}
   .job-loc{font-size:12px; color:#9b9aa8; margin-top:3px;}
-  .score-pill{
-    font-family:'JetBrains Mono',monospace; font-weight:600; font-size:13px;
-    padding:5px 12px; border-radius:20px; white-space:nowrap;
-  }
+  .score-pill{font-family:'JetBrains Mono',monospace; font-weight:600; font-size:13px; padding:5px 12px; border-radius:20px; white-space:nowrap;}
   .score-high{background:var(--emerald-soft); color:var(--emerald);}
-  .score-mid{background:#fff3d9; color:#a3720c;}
+  .score-mid{background:var(--amber-soft); color:var(--amber);}
   .score-low{background:var(--paper-dim); color:var(--ink-soft);}
   .job-reason{font-size:13px; color:#555; margin-top:10px;}
-  .cl-box{
-    margin-top:14px; background:var(--paper-dim); border-radius:8px; padding:16px;
-    font-size:13.5px; line-height:1.6; white-space:pre-wrap; display:none;
-  }
+  .cl-box{margin-top:14px; background:var(--paper-dim); border-radius:8px; padding:16px; font-size:13.5px; line-height:1.6; white-space:pre-wrap; display:none;}
   .cl-box.show{display:block;}
-
   .empty-state{text-align:center; padding:30px; color:var(--ink-soft); font-size:14px;}
 
-  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} }
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); padding:13px 22px; border-radius:10px;
+    font-size:13.5px; opacity:0; transition:all 0.25s; pointer-events:none; z-index:100;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:720px){
+    .toolkit-grid{grid-template-columns:repeat(2, 1fr);}
+    .greet-bar{flex-direction:column; align-items:flex-start; gap:12px;}
+  }
+  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} .ob-step.active{animation:none;} }
 </style>
 </head>
 <body>
@@ -137,13 +181,143 @@
     <div class="brand-mark">J</div>
     <div class="brand-name">JobApplyz</div>
   </a>
-  <div class="nav-tag mono">RESUME &amp; MATCHING TOOL</div>
+  <div class="nav-tag mono">AI JOB SEARCH ASSISTANT</div>
 </nav>
 
+<!-- ============ ONBOARDING ============ -->
+<div id="view-onboarding">
+  <div class="ob-progress" id="obProgress"></div>
+
+  <div class="ob-panel">
+    <!-- Step 1: Location -->
+    <div class="ob-step" data-step="0">
+      <div class="ob-eyebrow">Question 1 of 4</div>
+      <div class="ob-question">Where would you like to work?</div>
+      <div class="ob-hint">We'll pull live openings from this market.</div>
+      <div class="chip-grid" id="chipLocation">
+        <div class="ob-chip" data-value="pk">🇵🇰 Pakistan</div>
+        <div class="ob-chip" data-value="ae">🇦🇪 UAE</div>
+        <div class="ob-chip" data-value="sa">🇸🇦 Saudi Arabia</div>
+        <div class="ob-chip" data-value="qa">🇶🇦 Qatar</div>
+        <div class="ob-chip" data-value="om">🇴🇲 Oman</div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn-next" id="next0" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Role/field -->
+    <div class="ob-step" data-step="1">
+      <div class="ob-eyebrow">Question 2 of 4</div>
+      <div class="ob-question">What kind of work are you looking for?</div>
+      <div class="ob-hint">Your job title, field, or the role you want next.</div>
+      <input type="text" class="ob-input" id="inputRole" placeholder="e.g. Software Engineer, Production Manager, Sales">
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back1">Back</button>
+        <button class="ob-btn-next" id="next1" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Experience -->
+    <div class="ob-step" data-step="2">
+      <div class="ob-eyebrow">Question 3 of 4</div>
+      <div class="ob-question">How much experience do you have?</div>
+      <div class="ob-hint">This helps us match you to the right seniority level.</div>
+      <div class="chip-grid" id="chipExperience">
+        <div class="ob-chip" data-value="Entry-level (0-2 yrs)">Entry-level (0–2 yrs)</div>
+        <div class="ob-chip" data-value="Mid-level (3-5 yrs)">Mid-level (3–5 yrs)</div>
+        <div class="ob-chip" data-value="Senior (6-10 yrs)">Senior (6–10 yrs)</div>
+        <div class="ob-chip" data-value="Expert (10+ yrs)">Expert (10+ yrs)</div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back2">Back</button>
+        <button class="ob-btn-next" id="next2" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Current situation -->
+    <div class="ob-step" data-step="3">
+      <div class="ob-eyebrow">Question 4 of 4</div>
+      <div class="ob-question">Tell us where you're at</div>
+      <div class="ob-hint">So we can find the right opportunity for your situation.</div>
+      <div class="chip-grid" id="chipSituation">
+        <div class="ob-chip" data-value="Employed, open to offers">Employed, open to offers</div>
+        <div class="ob-chip" data-value="Unemployed, actively searching">Unemployed, actively searching</div>
+        <div class="ob-chip" data-value="Student / recent graduate">Student / recent graduate</div>
+        <div class="ob-chip" data-value="Returning after a break">Returning after a break</div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back3">Back</button>
+        <button class="ob-btn-next" id="next3" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Confirmation -->
+    <div class="ob-step" data-step="4">
+      <div class="ob-eyebrow">You're all set</div>
+      <div class="ob-question">Let's find your next role</div>
+      <div class="ob-hint">Here's what we'll search for — you can change this anytime.</div>
+      <div class="ob-summary" id="obSummary"></div>
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back4">Back</button>
+        <button class="ob-btn-next" id="finishOnboarding">Go to my dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="view-dashboard">
 <main>
-  <div class="eyebrow"><span class="dot"></span> Step 1 of 3</div>
-  <h1>Upload your resume</h1>
-  <p class="sub">We'll read it, match you with real openings, and draft a tailored cover letter for each one.</p>
+  <div class="greet-bar">
+    <div>
+      <div class="greet-text" id="greetText">Looking for roles</div>
+      <div class="greet-sub" id="greetSub">Set your preferences to get started</div>
+    </div>
+    <button class="edit-link" id="editPrefsBtn">Edit preferences</button>
+  </div>
+
+  <div class="section-title">Your toolkit</div>
+  <div class="toolkit-grid">
+    <div class="tool-card active-tool" data-tool="resume">
+      <span class="tool-badge badge-live">Live</span>
+      <div class="tool-icon">📄</div>
+      <div class="tool-name">Resume &amp; Matching</div>
+      <div class="tool-desc">Parse your resume and find real matching jobs</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🛠️</div>
+      <div class="tool-name">AI Resume Builder</div>
+      <div class="tool-desc">Build a resume from scratch with AI</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🎯</div>
+      <div class="tool-name">AI Resume Tailor</div>
+      <div class="tool-desc">Rewrite your resume for one specific job</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">Resume Translator</div>
+      <div class="tool-desc">Translate your resume into another language</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🎤</div>
+      <div class="tool-name">Interview Buddy</div>
+      <div class="tool-desc">Practice mock interviews with AI feedback</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">⚡</div>
+      <div class="tool-name">Auto-Apply</div>
+      <div class="tool-desc">Review-and-submit applications automatically</div>
+    </div>
+  </div>
+
+  <div class="section-title">Resume &amp; Matching</div>
 
   <div class="card">
     <span class="card-label">Resume file</span>
@@ -166,8 +340,120 @@
 
   <div id="jobsSection"></div>
 </main>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
+  /* ---------- Onboarding logic ---------- */
+  const TOTAL_STEPS = 5;
+  let currentStep = 0;
+  const onboarding = { location: null, locationLabel: null, role: null, experience: null, situation: null };
+
+  const progressEl = document.getElementById('obProgress');
+  for (let i = 0; i < TOTAL_STEPS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'ob-dot';
+    dot.id = 'dot' + i;
+    progressEl.appendChild(dot);
+  }
+
+  function updateProgress() {
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const dot = document.getElementById('dot' + i);
+      dot.classList.remove('active', 'done');
+      if (i < currentStep) dot.classList.add('done');
+      else if (i === currentStep) dot.classList.add('active');
+    }
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.ob-step[data-step="${n}"]`).classList.add('active');
+    currentStep = n;
+    updateProgress();
+  }
+
+  function setupChipGroup(groupId, nextBtnId, onSelect) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.ob-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.ob-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        onSelect(chip.dataset.value, chip.textContent);
+        document.getElementById(nextBtnId).disabled = false;
+      });
+    });
+  }
+
+  setupChipGroup('chipLocation', 'next0', (val, label) => { onboarding.location = val; onboarding.locationLabel = label.trim(); });
+  setupChipGroup('chipExperience', 'next2', (val) => { onboarding.experience = val; });
+  setupChipGroup('chipSituation', 'next3', (val) => { onboarding.situation = val; });
+
+  document.getElementById('inputRole').addEventListener('input', (e) => {
+    onboarding.role = e.target.value.trim();
+    document.getElementById('next1').disabled = onboarding.role.length === 0;
+  });
+
+  document.getElementById('next0').addEventListener('click', () => showStep(1));
+  document.getElementById('back1').addEventListener('click', () => showStep(0));
+  document.getElementById('next1').addEventListener('click', () => showStep(2));
+  document.getElementById('back2').addEventListener('click', () => showStep(1));
+  document.getElementById('next2').addEventListener('click', () => showStep(3));
+  document.getElementById('back3').addEventListener('click', () => showStep(2));
+  document.getElementById('next3').addEventListener('click', () => {
+    document.getElementById('obSummary').innerHTML = `
+      <div class="ob-summary-row"><span class="k">Location</span><span class="v">${onboarding.locationLabel}</span></div>
+      <div class="ob-summary-row"><span class="k">Role</span><span class="v">${onboarding.role}</span></div>
+      <div class="ob-summary-row"><span class="k">Experience</span><span class="v">${onboarding.experience}</span></div>
+      <div class="ob-summary-row"><span class="k">Situation</span><span class="v">${onboarding.situation}</span></div>
+    `;
+    showStep(4);
+  });
+  document.getElementById('back4').addEventListener('click', () => showStep(3));
+
+  document.getElementById('finishOnboarding').addEventListener('click', () => {
+    localStorage.setItem('jobapplyz_onboarding', JSON.stringify(onboarding));
+    goToDashboard();
+  });
+
+  function goToDashboard() {
+    document.getElementById('view-onboarding').style.display = 'none';
+    document.getElementById('view-dashboard').style.display = 'block';
+    document.getElementById('greetText').textContent = `Looking for ${onboarding.role} roles in ${onboarding.locationLabel}`;
+    document.getElementById('greetSub').textContent = `${onboarding.experience} · ${onboarding.situation}`;
+  }
+
+  document.getElementById('editPrefsBtn').addEventListener('click', () => {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-onboarding').style.display = 'flex';
+    showStep(0);
+  });
+
+  // Resume returning users straight to dashboard if they already onboarded
+  const saved = localStorage.getItem('jobapplyz_onboarding');
+  if (saved) {
+    Object.assign(onboarding, JSON.parse(saved));
+    goToDashboard();
+  } else {
+    showStep(0);
+  }
+
+  /* ---------- Toast for "coming soon" tools ---------- */
+  const toast = document.getElementById('toast');
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  document.querySelectorAll('.tool-card[data-tool="soon"]').forEach(card => {
+    card.addEventListener('click', () => showToast(`${card.querySelector('.tool-name').textContent} is coming soon.`));
+  });
+  document.querySelector('.tool-card[data-tool="resume"]').addEventListener('click', () => {
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  /* ---------- Resume upload / match / cover letter (existing flow) ---------- */
   const fileInput = document.getElementById('fileInput');
   const uploadBtn = document.getElementById('uploadBtn');
   const filenameDiv = document.getElementById('filename');
@@ -189,14 +475,8 @@
   function renderProfileCard(data) {
     const isMock = (data.summary || '').includes('Mock mode');
     const cleanSummary = (data.summary || '').replace(/\(Mock mode:.*?\)/, '').trim();
-
-    const skillsHtml = (data.skills && data.skills.length)
-      ? `<div class="field-label">Skills</div><div class="chip-row">${data.skills.map(s => `<span class="chip">${s}</span>`).join('')}</div>`
-      : '';
-
-    const titlesHtml = (data.job_titles && data.job_titles.length)
-      ? `<div class="field-label">Role</div><div class="chip-row">${data.job_titles.map(t => `<span class="chip">${t}</span>`).join('')}</div>`
-      : '';
+    const skillsHtml = (data.skills && data.skills.length) ? `<div class="field-label">Skills</div><div class="chip-row">${data.skills.map(s => `<span class="chip">${s}</span>`).join('')}</div>` : '';
+    const titlesHtml = (data.job_titles && data.job_titles.length) ? `<div class="field-label">Role</div><div class="chip-row">${data.job_titles.map(t => `<span class="chip">${t}</span>`).join('')}</div>` : '';
 
     profileCardWrap.innerHTML = `
       <div class="card">
@@ -210,7 +490,7 @@
         ${cleanSummary ? `<div class="profile-summary">${cleanSummary}</div>` : ''}
         ${titlesHtml}
         ${skillsHtml}
-        ${isMock ? '<div class="mock-note">⚡ Running in Mock Mode — this is a lightweight keyword extraction, not full AI parsing. Results improve once real AI mode is enabled.</div>' : ''}
+        ${isMock ? '<div class="mock-note">⚡ Running in Mock Mode — lightweight keyword extraction, not full AI parsing yet.</div>' : ''}
       </div>
     `;
   }
@@ -260,7 +540,11 @@
       const res = await fetch('/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsedResumeData)
+        body: JSON.stringify({
+          resume: parsedResumeData,
+          preferred_query: onboarding.role || null,
+          preferred_country: onboarding.location || null
+        })
       });
       const data = await res.json();
       matchStatus.classList.remove('show');
