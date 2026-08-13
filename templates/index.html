@@ -172,6 +172,70 @@
     .greet-bar{flex-direction:column; align-items:flex-start; gap:12px;}
   }
   @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} .ob-step.active{animation:none;} }
+
+  /* ============ RESUME BUILDER ============ */
+  #view-builder{display:none;}
+  .builder-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;}
+  .builder-back{background:transparent; color:var(--ink-soft); padding:8px 0; font-size:13px;}
+  .builder-back:hover{color:var(--ink);}
+  .builder-steps{display:flex; gap:6px; margin-bottom:30px;}
+  .bstep-dot{flex:1; height:4px; border-radius:2px; background:var(--line);}
+  .bstep-dot.active{background:var(--violet);}
+  .bstep-dot.done{background:var(--emerald);}
+
+  .b-view{display:none;}
+  .b-view.active{display:block; animation:fadeUp 0.3s ease;}
+  .b-label{font-size:12px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.03em; margin:16px 0 6px;}
+  .b-label:first-child{margin-top:0;}
+  .b-input, .b-textarea{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:14px; font-family:'Inter',sans-serif; margin-bottom:4px;
+  }
+  .b-textarea{resize:vertical; min-height:80px;}
+  .b-input:focus, .b-textarea:focus{outline:none; border-color:var(--violet);}
+  .b-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  .entry-card{background:var(--paper-dim); border-radius:10px; padding:16px; margin-bottom:12px;}
+  .entry-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .entry-title{font-weight:600; font-size:14px;}
+  .entry-remove{background:transparent; color:#c0392b; font-size:12px; padding:4px 8px;}
+  .bullet-list{margin:10px 0 0 18px; font-size:13.5px;}
+  .bullet-list li{margin-bottom:4px;}
+
+  .skill-input-row{display:flex; gap:8px; margin-bottom:10px;}
+  .skill-input-row .b-input{margin-bottom:0;}
+  .add-skill-btn{background:var(--ink); color:white; padding:12px 18px; white-space:nowrap;}
+
+  .resume-preview{
+    background:white; border:1px solid var(--line); border-radius:10px; padding:40px;
+    font-family:'Inter',sans-serif; color:#1a1a1a; max-width:100%;
+  }
+  .rp-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:24px;}
+  .rp-contact{font-size:12.5px; color:#555; margin-top:4px;}
+  .rp-section-title{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1.5px solid #1a1a1a; padding-bottom:4px; margin:20px 0 10px;}
+  .rp-summary{font-size:13.5px; line-height:1.6;}
+  .rp-skills{font-size:13.5px;}
+  .rp-entry{margin-bottom:14px;}
+  .rp-entry-head{display:flex; justify-content:space-between; font-size:13.5px; font-weight:600;}
+  .rp-entry-sub{font-size:12.5px; color:#555; margin-bottom:6px;}
+  .rp-entry ul{margin:0 0 0 18px; font-size:13px;}
+  .rp-entry li{margin-bottom:3px;}
+
+  @media print{
+    nav, .builder-nav, .builder-steps, .b-view:not(.active) .entry-remove, #reviewControls, #atsResultCard{display:none !important;}
+    body{background:white;}
+    .resume-preview{border:none; padding:0;}
+  }
+
+  .ats-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px; margin:20px 0;}
+  .ats-score-row{display:flex; align-items:center; gap:18px; margin-bottom:18px;}
+  .ats-score-num{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:38px;}
+  .ats-score-label{font-size:13px; color:var(--ink-soft);}
+  .ats-check-row{display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-top:1px solid var(--line);}
+  .ats-check-row:first-of-type{border-top:none;}
+  .ats-icon{font-size:15px; margin-top:1px;}
+  .ats-check-label{font-weight:600; font-size:13.5px;}
+  .ats-check-note{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
 </style>
 </head>
 <body>
@@ -285,8 +349,8 @@
       <div class="tool-name">Resume &amp; Matching</div>
       <div class="tool-desc">Parse your resume and find real matching jobs</div>
     </div>
-    <div class="tool-card" data-tool="soon">
-      <span class="tool-badge badge-soon">Soon</span>
+    <div class="tool-card" data-tool="builder">
+      <span class="tool-badge badge-live">Live</span>
       <div class="tool-icon">🛠️</div>
       <div class="tool-name">AI Resume Builder</div>
       <div class="tool-desc">Build a resume from scratch with AI</div>
@@ -342,7 +406,147 @@
 </main>
 </div>
 
+<!-- ============ RESUME BUILDER ============ -->
+<div id="view-builder">
+<main>
+  <div class="builder-nav">
+    <button class="builder-back" id="builderBackBtn">← Back to dashboard</button>
+  </div>
+  <div class="section-title" style="margin-top:0;">Build your resume</div>
+  <p style="color:var(--ink-soft); font-size:14px; margin-bottom:24px;">Answer a few questions per section — AI will help polish the wording. You stay in control of every word.</p>
+
+  <div class="builder-steps" id="builderSteps"></div>
+
+  <!-- B-intro: Quick start choice -->
+  <div class="b-view active" data-bstep="intro">
+    <div class="card" style="cursor:pointer;" onclick="selectBuilderPath('quick')">
+      <span class="card-label">⚡ Fastest way to start</span>
+      <div style="font-weight:700; font-size:16px; margin-bottom:6px;">Generate a draft from your job title</div>
+      <div style="font-size:13.5px; color:var(--ink-soft);">Tell us the role you're targeting — AI drafts a starter summary, skills, and sample bullet points for you to personalize. No blank page.</div>
+    </div>
+    <div class="card" style="cursor:pointer;" onclick="selectBuilderPath('guided')">
+      <span class="card-label">📝 Full control</span>
+      <div style="font-weight:700; font-size:16px; margin-bottom:6px;">Answer questions step-by-step</div>
+      <div style="font-size:13.5px; color:var(--ink-soft);">Walk through each section yourself — contact info, experience, education, and skills — with AI help along the way.</div>
+    </div>
+  </div>
+
+  <!-- B-quick: Quick draft inputs -->
+  <div class="b-view" data-bstep="quick">
+    <div class="card">
+      <span class="card-label">Quick draft</span>
+      <div class="b-label">What job title are you targeting?</div>
+      <input class="b-input" id="quickJobTitle" placeholder="e.g. Production Manager, Software Engineer">
+      <div class="b-label">Experience level</div>
+      <div class="chip-grid" id="chipQuickExp" style="justify-content:flex-start;">
+        <div class="ob-chip" data-value="Entry-level">Entry-level</div>
+        <div class="ob-chip" data-value="Mid-level">Mid-level</div>
+        <div class="ob-chip" data-value="Senior">Senior</div>
+        <div class="ob-chip" data-value="Expert">Expert</div>
+      </div>
+      <button class="btn-secondary" onclick="generateQuickDraft()">✨ Generate my draft</button>
+      <div class="status-line" id="quickDraftStatus"><div class="spinner"></div> Drafting your starter resume...</div>
+    </div>
+    <button class="builder-back" onclick="showBuilderStep('intro')">← Back</button>
+  </div>
+  <div class="b-view" data-bstep="0">
+    <div class="card">
+      <span class="card-label">Contact information</span>
+      <div class="b-label">Full name</div>
+      <input class="b-input" id="bName" placeholder="Muhammad Hanif">
+      <div class="b-row">
+        <div><div class="b-label">Email</div><input class="b-input" id="bEmail" placeholder="you@example.com"></div>
+        <div><div class="b-label">Phone</div><input class="b-input" id="bPhone" placeholder="+92 300 1234567"></div>
+      </div>
+      <div class="b-row">
+        <div><div class="b-label">Location</div><input class="b-input" id="bLocation" placeholder="Jeddah, Saudi Arabia"></div>
+        <div><div class="b-label">LinkedIn (optional)</div><input class="b-input" id="bLinkedin" placeholder="linkedin.com/in/..."></div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="builderNext(0)">Continue</button>
+  </div>
+
+  <!-- B1: Target role -->
+  <div class="b-view" data-bstep="1">
+    <div class="card">
+      <span class="card-label">Target role</span>
+      <div class="b-label">What role are you building this resume for?</div>
+      <input class="b-input" id="bTargetRole" placeholder="e.g. Production Manager, Software Engineer">
+    </div>
+    <button class="btn-outline" onclick="builderBack(1)" style="margin-right:8px;">Back</button>
+    <button class="btn-primary" style="display:inline-block; width:auto; margin-top:0;" onclick="builderNext(1)">Continue</button>
+  </div>
+
+  <!-- B2: Experience -->
+  <div class="b-view" data-bstep="2">
+    <div class="card">
+      <span class="card-label">Work experience</span>
+      <div id="experienceEntries"></div>
+      <div class="b-label">Job title</div>
+      <input class="b-input" id="expTitle" placeholder="Production Manager">
+      <div class="b-row">
+        <div><div class="b-label">Company</div><input class="b-input" id="expCompany" placeholder="Company name"></div>
+        <div><div class="b-label">Dates</div><input class="b-input" id="expDates" placeholder="2020 - Present"></div>
+      </div>
+      <div class="b-label">What did you do? (rough notes are fine — AI will polish this)</div>
+      <textarea class="b-textarea" id="expRaw" placeholder="e.g. managed a team of 12 technicians, reduced downtime by improving preventive maintenance schedule, handled procurement of spare parts..."></textarea>
+      <button class="btn-outline" style="margin-top:10px;" onclick="generateExpBullets()">✨ Generate bullet points with AI</button>
+      <div id="expBulletsPreview"></div>
+      <button class="btn-secondary" style="margin-top:16px;" onclick="addExperienceEntry()">Add this job to resume</button>
+    </div>
+    <button class="btn-outline" onclick="builderBack(2)" style="margin-right:8px;">Back</button>
+    <button class="btn-primary" style="display:inline-block; width:auto; margin-top:0;" onclick="builderNext(2)">Continue</button>
+  </div>
+
+  <!-- B3: Education -->
+  <div class="b-view" data-bstep="3">
+    <div class="card">
+      <span class="card-label">Education</span>
+      <div id="educationEntries"></div>
+      <div class="b-label">Degree</div>
+      <input class="b-input" id="eduDegree" placeholder="BS Mechanical Engineering">
+      <div class="b-row">
+        <div><div class="b-label">Institution</div><input class="b-input" id="eduInstitution" placeholder="University name"></div>
+        <div><div class="b-label">Year</div><input class="b-input" id="eduYear" placeholder="2019"></div>
+      </div>
+      <button class="btn-secondary" style="margin-top:10px;" onclick="addEducationEntry()">Add to resume</button>
+    </div>
+    <button class="btn-outline" onclick="builderBack(3)" style="margin-right:8px;">Back</button>
+    <button class="btn-primary" style="display:inline-block; width:auto; margin-top:0;" onclick="builderNext(3)">Continue</button>
+  </div>
+
+  <!-- B4: Skills -->
+  <div class="b-view" data-bstep="4">
+    <div class="card">
+      <span class="card-label">Skills</span>
+      <div class="skill-input-row">
+        <input class="b-input" id="skillInput" placeholder="Type a skill and press Enter">
+        <button class="add-skill-btn" onclick="addSkill()">Add</button>
+      </div>
+      <div class="chip-row" id="skillChips"></div>
+    </div>
+    <button class="btn-outline" onclick="builderBack(4)" style="margin-right:8px;">Back</button>
+    <button class="btn-primary" style="display:inline-block; width:auto; margin-top:0;" onclick="builderNext(4)">Continue</button>
+  </div>
+
+  <!-- B5: Review -->
+  <div class="b-view" data-bstep="5">
+    <div id="reviewControls">
+      <button class="btn-outline" onclick="generateBuilderSummary()">✨ Generate AI summary</button>
+      <button class="btn-outline" onclick="checkAtsScore()">📊 Check ATS Score</button>
+      <button class="btn-primary" style="display:inline-block; width:auto; margin-top:0; margin-left:8px;" onclick="window.print()">Download as PDF</button>
+      <div class="status-line" id="summaryStatus"><div class="spinner"></div> Writing your professional summary...</div>
+      <div class="status-line" id="atsStatus"><div class="spinner"></div> Checking your resume against ATS criteria...</div>
+    </div>
+    <div id="atsResultCard"></div>
+    <div class="resume-preview" id="resumePreview" style="margin-top:20px;"></div>
+    <button class="builder-back" style="margin-top:16px;" onclick="builderBack(5)">← Back to edit</button>
+  </div>
+</main>
+</div>
+
 <div class="toast" id="toast"></div>
+
 
 <script>
   /* ---------- Onboarding logic ---------- */
@@ -452,6 +656,321 @@
   document.querySelector('.tool-card[data-tool="resume"]').addEventListener('click', () => {
     document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
+  document.querySelector('.tool-card[data-tool="builder"]').addEventListener('click', () => openBuilder());
+
+  /* ---------- AI Resume Builder ---------- */
+  const builderData = { experience: [], education: [], skills: [] };
+  let bCurrentStep = 0;
+  const B_TOTAL_STEPS = 6;
+
+  const bStepsEl = document.getElementById('builderSteps');
+  for (let i = 0; i < B_TOTAL_STEPS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'bstep-dot';
+    dot.id = 'bdot' + i;
+    bStepsEl.appendChild(dot);
+  }
+
+  function showBuilderStep(n) {
+    document.querySelectorAll('.b-view').forEach(v => v.classList.remove('active'));
+    document.querySelector(`.b-view[data-bstep="${n}"]`).classList.add('active');
+    bCurrentStep = n;
+    const isNumeric = typeof n === 'number';
+    for (let i = 0; i < B_TOTAL_STEPS; i++) {
+      const dot = document.getElementById('bdot' + i);
+      dot.classList.remove('active', 'done');
+      if (isNumeric) {
+        if (i < n) dot.classList.add('done');
+        else if (i === n) dot.classList.add('active');
+      }
+    }
+    if (n === 5) renderResumePreview();
+  }
+
+  function openBuilder() {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-onboarding').style.display = 'none';
+    document.getElementById('view-builder').style.display = 'block';
+    showBuilderStep('intro');
+  }
+
+  function selectBuilderPath(path) {
+    if (path === 'quick') showBuilderStep('quick');
+    else showBuilderStep(0);
+  }
+
+  document.getElementById('builderBackBtn').addEventListener('click', () => {
+    document.getElementById('view-builder').style.display = 'none';
+    document.getElementById('view-dashboard').style.display = 'block';
+  });
+
+  let selectedQuickExp = 'Mid-level';
+  document.querySelectorAll('#chipQuickExp .ob-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#chipQuickExp .ob-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      selectedQuickExp = chip.dataset.value;
+    });
+  });
+
+  async function generateQuickDraft() {
+    const jobTitle = document.getElementById('quickJobTitle').value.trim();
+    if (!jobTitle) { showToast('Enter a job title first.'); return; }
+    const statusEl = document.getElementById('quickDraftStatus');
+    statusEl.classList.add('show');
+
+    try {
+      const res = await fetch('/resume-builder/quick-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_title: jobTitle, experience_level: selectedQuickExp })
+      });
+      const data = await res.json();
+      statusEl.classList.remove('show');
+      if (data.success) {
+        const d = data.draft;
+        builderData.target_role = jobTitle;
+        builderData.summary = d.summary;
+        builderData.skills = d.skills || [];
+        builderData.experience = [{
+          title: d.sample_experience.title,
+          company: '',
+          dates: '',
+          bullets: d.sample_experience.bullets,
+        }];
+        renderExperienceEntries();
+        renderSkillChips();
+        showToast('Draft ready — now add your real contact info and edit the details.');
+        showBuilderStep(0);
+      } else {
+        showToast('Error: ' + data.error);
+      }
+    } catch (err) {
+      statusEl.classList.remove('show');
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function builderNext(from) {
+    if (from === 0) {
+      builderData.full_name = document.getElementById('bName').value.trim();
+      builderData.email = document.getElementById('bEmail').value.trim();
+      builderData.phone = document.getElementById('bPhone').value.trim();
+      builderData.location = document.getElementById('bLocation').value.trim();
+      builderData.linkedin = document.getElementById('bLinkedin').value.trim();
+    }
+    if (from === 1) {
+      builderData.target_role = document.getElementById('bTargetRole').value.trim();
+    }
+    showBuilderStep(from + 1);
+  }
+  function builderBack(from) { showBuilderStep(from - 1); }
+
+  let lastGeneratedBullets = [];
+  async function generateExpBullets() {
+    const jobTitle = document.getElementById('expTitle').value.trim() || builderData.target_role || 'this role';
+    const rawInput = document.getElementById('expRaw').value.trim();
+    const previewEl = document.getElementById('expBulletsPreview');
+    if (!rawInput) { showToast('Add a few notes about this job first.'); return; }
+    previewEl.innerHTML = '<div class="status-line show"><div class="spinner"></div> Polishing your bullet points...</div>';
+
+    try {
+      const res = await fetch('/resume-builder/bullets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_title: jobTitle, raw_input: rawInput })
+      });
+      const data = await res.json();
+      if (data.success) {
+        lastGeneratedBullets = data.bullets;
+        previewEl.innerHTML = '<ul class="bullet-list">' + data.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+      } else {
+        previewEl.innerHTML = `<div style="color:#c0392b; font-size:13px;">Error: ${data.error}</div>`;
+      }
+    } catch (err) {
+      previewEl.innerHTML = `<div style="color:#c0392b; font-size:13px;">Error: ${err.message}</div>`;
+    }
+  }
+
+  function addExperienceEntry() {
+    const title = document.getElementById('expTitle').value.trim();
+    const company = document.getElementById('expCompany').value.trim();
+    const dates = document.getElementById('expDates').value.trim();
+    if (!title) { showToast('Add a job title first.'); return; }
+
+    builderData.experience.push({ title, company, dates, bullets: lastGeneratedBullets.length ? lastGeneratedBullets : [] });
+    renderExperienceEntries();
+
+    document.getElementById('expTitle').value = '';
+    document.getElementById('expCompany').value = '';
+    document.getElementById('expDates').value = '';
+    document.getElementById('expRaw').value = '';
+    document.getElementById('expBulletsPreview').innerHTML = '';
+    lastGeneratedBullets = [];
+  }
+
+  function renderExperienceEntries() {
+    const el = document.getElementById('experienceEntries');
+    el.innerHTML = builderData.experience.map((exp, i) => `
+      <div class="entry-card">
+        <div class="entry-head">
+          <div class="entry-title">${exp.title}${exp.company ? ' — ' + exp.company : ''} ${exp.dates ? '· ' + exp.dates : ''}</div>
+          <button class="entry-remove" onclick="removeExperience(${i})">Remove</button>
+        </div>
+        ${exp.bullets.length ? '<ul class="bullet-list">' + exp.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>' : ''}
+      </div>
+    `).join('');
+  }
+  function removeExperience(i) { builderData.experience.splice(i, 1); renderExperienceEntries(); }
+
+  function addEducationEntry() {
+    const degree = document.getElementById('eduDegree').value.trim();
+    const institution = document.getElementById('eduInstitution').value.trim();
+    const year = document.getElementById('eduYear').value.trim();
+    if (!degree) { showToast('Add a degree first.'); return; }
+    builderData.education.push({ degree, institution, year });
+    renderEducationEntries();
+    document.getElementById('eduDegree').value = '';
+    document.getElementById('eduInstitution').value = '';
+    document.getElementById('eduYear').value = '';
+  }
+  function renderEducationEntries() {
+    const el = document.getElementById('educationEntries');
+    el.innerHTML = builderData.education.map((edu, i) => `
+      <div class="entry-card">
+        <div class="entry-head">
+          <div class="entry-title">${edu.degree}${edu.institution ? ' — ' + edu.institution : ''} ${edu.year ? '· ' + edu.year : ''}</div>
+          <button class="entry-remove" onclick="removeEducation(${i})">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  function removeEducation(i) { builderData.education.splice(i, 1); renderEducationEntries(); }
+
+  function addSkill() {
+    const input = document.getElementById('skillInput');
+    const val = input.value.trim();
+    if (!val) return;
+    if (!builderData.skills.includes(val)) builderData.skills.push(val);
+    input.value = '';
+    renderSkillChips();
+  }
+  document.getElementById('skillInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); addSkill(); }
+  });
+  function renderSkillChips() {
+    document.getElementById('skillChips').innerHTML = builderData.skills.map((s, i) => `
+      <span class="chip" style="cursor:pointer;" onclick="removeSkill(${i})">${s} ✕</span>
+    `).join('');
+  }
+  function removeSkill(i) { builderData.skills.splice(i, 1); renderSkillChips(); }
+
+  async function generateBuilderSummary() {
+    const statusEl = document.getElementById('summaryStatus');
+    statusEl.classList.add('show');
+    try {
+      const res = await fetch('/resume-builder/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(builderData)
+      });
+      const data = await res.json();
+      statusEl.classList.remove('show');
+      if (data.success) {
+        builderData.summary = data.summary;
+        renderResumePreview();
+      } else {
+        showToast('Error generating summary: ' + data.error);
+      }
+    } catch (err) {
+      statusEl.classList.remove('show');
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function scoreIcon(status) {
+    if (status === 'pass') return '✅';
+    if (status === 'warning') return '⚠️';
+    return '❌';
+  }
+
+  async function checkAtsScore() {
+    const statusEl = document.getElementById('atsStatus');
+    const resultEl = document.getElementById('atsResultCard');
+    statusEl.classList.add('show');
+    resultEl.innerHTML = '';
+    try {
+      const res = await fetch('/resume-builder/ats-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(builderData)
+      });
+      const data = await res.json();
+      statusEl.classList.remove('show');
+      if (data.success) {
+        const r = data.result;
+        const scoreColor = r.score >= 70 ? 'var(--emerald)' : r.score >= 40 ? 'var(--amber)' : '#c0392b';
+        resultEl.innerHTML = `
+          <div class="ats-card">
+            <div class="ats-score-row">
+              <div class="ats-score-num" style="color:${scoreColor};">${r.score}</div>
+              <div class="ats-score-label">ATS Compatibility Score<br>out of 100</div>
+            </div>
+            ${r.checks.map(c => `
+              <div class="ats-check-row">
+                <div class="ats-icon">${scoreIcon(c.status)}</div>
+                <div>
+                  <div class="ats-check-label">${c.label}</div>
+                  <div class="ats-check-note">${c.note}</div>
+                </div>
+              </div>
+            `).join('')}
+            ${r.note ? `<div class="mock-note" style="margin-top:16px;">${r.note}</div>` : ''}
+          </div>
+        `;
+      } else {
+        showToast('Error checking ATS score: ' + data.error);
+      }
+    } catch (err) {
+      statusEl.classList.remove('show');
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function renderResumePreview() {
+    const d = builderData;
+    const contactParts = [d.email, d.phone, d.location, d.linkedin].filter(Boolean);
+    let html = `
+      <div class="rp-name">${d.full_name || 'Your Name'}</div>
+      <div class="rp-contact">${contactParts.join(' · ')}</div>
+    `;
+    if (d.summary) {
+      html += `<div class="rp-section-title">Summary</div><div class="rp-summary">${d.summary}</div>`;
+    }
+    if (d.skills && d.skills.length) {
+      html += `<div class="rp-section-title">Skills</div><div class="rp-skills">${d.skills.join(', ')}</div>`;
+    }
+    if (d.experience && d.experience.length) {
+      html += `<div class="rp-section-title">Work Experience</div>`;
+      d.experience.forEach(exp => {
+        html += `<div class="rp-entry">
+          <div class="rp-entry-head"><span>${exp.title}</span><span>${exp.dates || ''}</span></div>
+          <div class="rp-entry-sub">${exp.company || ''}</div>
+          ${exp.bullets.length ? '<ul>' + exp.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>' : ''}
+        </div>`;
+      });
+    }
+    if (d.education && d.education.length) {
+      html += `<div class="rp-section-title">Education</div>`;
+      d.education.forEach(edu => {
+        html += `<div class="rp-entry">
+          <div class="rp-entry-head"><span>${edu.degree}</span><span>${edu.year || ''}</span></div>
+          <div class="rp-entry-sub">${edu.institution || ''}</div>
+        </div>`;
+      });
+    }
+    document.getElementById('resumePreview').innerHTML = html;
+  }
 
   /* ---------- Resume upload / match / cover letter (existing flow) ---------- */
   const fileInput = document.getElementById('fileInput');

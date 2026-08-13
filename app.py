@@ -9,6 +9,7 @@ from jobs_data import load_sample_jobs
 from matcher import mock_match_jobs, ai_match_jobs
 from cover_letter import mock_generate_cover_letter, ai_generate_cover_letter
 from resume_tailor import mock_tailor_resume, ai_tailor_resume
+from resume_builder import mock_generate_bullets, ai_generate_bullets, mock_generate_summary, ai_generate_summary, mock_ats_check, ai_ats_check, mock_quick_draft, ai_quick_draft
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -250,6 +251,76 @@ def tailor_resume():
         else:
             tailored = ai_tailor_resume(resume_data, job, client)
         return jsonify({"success": True, "tailored": tailored})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/resume-builder/bullets", methods=["POST"])
+def builder_bullets():
+    payload = request.get_json()
+    if not payload or "raw_input" not in payload:
+        return jsonify({"error": "Missing raw_input"}), 400
+
+    job_title = payload.get("job_title", "this role")
+    raw_input = payload["raw_input"]
+
+    try:
+        if MOCK_MODE:
+            bullets = mock_generate_bullets(job_title, raw_input)
+        else:
+            bullets = ai_generate_bullets(job_title, raw_input, client)
+        return jsonify({"success": True, "bullets": bullets})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/resume-builder/summary", methods=["POST"])
+def builder_summary():
+    builder_data = request.get_json()
+    if not builder_data:
+        return jsonify({"error": "Missing resume builder data"}), 400
+
+    try:
+        if MOCK_MODE:
+            summary = mock_generate_summary(builder_data)
+        else:
+            summary = ai_generate_summary(builder_data, client)
+        return jsonify({"success": True, "summary": summary})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/resume-builder/quick-draft", methods=["POST"])
+def builder_quick_draft():
+    payload = request.get_json()
+    if not payload or "job_title" not in payload:
+        return jsonify({"error": "Missing job_title"}), 400
+
+    job_title = payload["job_title"]
+    experience_level = payload.get("experience_level", "Mid-level")
+
+    try:
+        if MOCK_MODE:
+            draft = mock_quick_draft(job_title, experience_level)
+        else:
+            draft = ai_quick_draft(job_title, experience_level, client)
+        return jsonify({"success": True, "draft": draft})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/resume-builder/ats-check", methods=["POST"])
+def builder_ats_check():
+    builder_data = request.get_json()
+    if not builder_data:
+        return jsonify({"error": "Missing resume builder data"}), 400
+
+    try:
+        if MOCK_MODE:
+            result = mock_ats_check(builder_data)
+        else:
+            result = ai_ats_check(builder_data, client)
+        return jsonify({"success": True, "result": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
