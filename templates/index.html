@@ -566,8 +566,12 @@
               <div class="score-pill ${scoreClass(job.match_score)}">${job.match_score}% match</div>
             </div>
             <div class="job-reason">${job.match_reason}</div>
-            <button class="btn-outline" style="margin-top:12px;" onclick="generateCoverLetter(${i})">Generate Cover Letter</button>
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+              <button class="btn-outline" onclick="generateCoverLetter(${i})">Generate Cover Letter</button>
+              <button class="btn-outline" onclick="tailorResume(${i})">Tailor My Resume</button>
+            </div>
             <div class="cl-box" id="cl-box-${i}"></div>
+            <div class="cl-box" id="tailor-box-${i}"></div>
           </div>
         `).join('');
       } else {
@@ -579,6 +583,40 @@
     }
     matchBtn.disabled = false;
   });
+
+  async function tailorResume(index) {
+    const job = window.currentJobs[index];
+    const box = document.getElementById('tailor-box-' + index);
+    box.classList.add('show');
+    box.textContent = 'Tailoring your resume for this role...';
+
+    try {
+      const res = await fetch('/resume-tailor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: parsedResumeData, job: job })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const t = data.tailored;
+        let html = `<strong>Tailored summary:</strong><br>${t.tailored_summary}<br><br>`;
+        if (t.highlighted_skills && t.highlighted_skills.length) {
+          html += `<strong>Highlight these skills first:</strong><br>${t.highlighted_skills.join(', ')}<br><br>`;
+        }
+        if (t.suggested_bullet_points && t.suggested_bullet_points.length) {
+          html += `<strong>Suggested bullet points:</strong><ul style="margin:6px 0 0 18px;">${t.suggested_bullet_points.map(b => `<li>${b}</li>`).join('')}</ul><br>`;
+        }
+        if (t.note) {
+          html += `<em style="font-size:12px; color:var(--ink-soft);">${t.note}</em>`;
+        }
+        box.innerHTML = html;
+      } else {
+        box.textContent = 'Error: ' + data.error;
+      }
+    } catch (err) {
+      box.textContent = 'Error: ' + err.message;
+    }
+  }
 
   async function generateCoverLetter(index) {
     const job = window.currentJobs[index];

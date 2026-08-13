@@ -8,6 +8,7 @@ import anthropic
 from jobs_data import load_sample_jobs
 from matcher import mock_match_jobs, ai_match_jobs
 from cover_letter import mock_generate_cover_letter, ai_generate_cover_letter
+from resume_tailor import mock_tailor_resume, ai_tailor_resume
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -230,6 +231,25 @@ def generate_cover_letter():
         else:
             letter = ai_generate_cover_letter(resume_data, job, client)
         return jsonify({"success": True, "cover_letter": letter})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/resume-tailor", methods=["POST"])
+def tailor_resume():
+    payload = request.get_json()
+    if not payload or "resume" not in payload or "job" not in payload:
+        return jsonify({"error": "Missing resume or job data"}), 400
+
+    resume_data = payload["resume"]
+    job = payload["job"]
+
+    try:
+        if MOCK_MODE:
+            tailored = mock_tailor_resume(resume_data, job)
+        else:
+            tailored = ai_tailor_resume(resume_data, job, client)
+        return jsonify({"success": True, "tailored": tailored})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
