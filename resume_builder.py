@@ -1,32 +1,50 @@
 import json
 
 
-def mock_generate_bullets(job_title, raw_input):
+def mock_generate_bullets(job_title, raw_input, mode="improve"):
     """Free fallback: lightly reformats the user's raw input into bullet-point
     style without real AI rewriting."""
     if not raw_input.strip():
-        return ["(Add a few sentences about your responsibilities above, then try again.)"]
-    # Split on sentence-ish boundaries and clean up
+        return {"bullets": ["(Add a few sentences about your responsibilities above, then try again.)"], "feedback": None}
     parts = [p.strip() for p in raw_input.replace("\n", ". ").split(".") if p.strip()]
     bullets = [p[0].upper() + p[1:] if p else p for p in parts[:5]]
-    bullets.append("(Mock mode: lightly reformatted, not real AI rewriting. Switch to Real AI mode for polished, achievement-focused bullets.)")
-    return bullets
+    note = "(Mock mode: lightly reformatted, not real AI rewriting. Switch to Real AI mode for polished, achievement-focused bullets.)"
+    bullets.append(note)
+    feedback = "(Mock mode: recruiter-style feedback needs Real AI mode.)" if mode == "recruiter" else None
+    return {"bullets": bullets, "feedback": feedback}
 
 
-def ai_generate_bullets(job_title, raw_input, client):
-    """Real AI: turns a rough description of responsibilities into 3-5 sharp,
-    achievement-focused, ATS-friendly resume bullet points."""
-    prompt = f"""You are a professional resume writer helping a candidate write ATS-friendly
-resume bullet points for their role as "{job_title}".
+def ai_generate_bullets(job_title, raw_input, client, mode="improve"):
+    """Real AI: turns a rough description of responsibilities into sharp,
+    ATS-friendly resume bullet points. Three modes:
+    - "improve": rewrite into strong, action-oriented, quantified bullets (default)
+    - "recruiter": critique the content like a recruiter reviewing it, plus improved bullets
+    - "inspire": offer varied, creative phrasing alternatives to choose from
+    """
+    mode_instructions = {
+        "improve": """Rewrite this into 3-5 sharp, action-oriented, ATS-friendly resume bullet
+points. Start each with a strong action verb. Quantify impact where the notes suggest a
+number, without inventing false numbers. Keep each bullet under 20 words. Plain text only,
+no special characters or emojis.""",
+        "recruiter": """Act as a recruiter reviewing these notes. First, write 1-2 sentences of
+direct, honest feedback on what's currently weak (e.g. too vague, missing metrics, passive
+language). Then provide 3-5 improved bullet points that fix those issues. Be constructive
+but specific — the kind of feedback a real recruiter would give in 30 seconds of scanning
+a resume.""",
+        "inspire": """Provide 3-5 alternative, creative-but-professional ways to phrase this
+experience as resume bullets — vary the structure and word choice across the options so the
+candidate has real choices, not just minor tweaks of the same sentence. Stay honest to the
+facts in the notes, don't invent achievements. Plain text only.""",
+    }
+    instruction = mode_instructions.get(mode, mode_instructions["improve"])
 
-Based on the raw notes below (in their own words), write 3-5 resume bullet points that:
-- Start with a strong action verb
-- Are concise (under 20 words each)
-- Quantify impact where the notes suggest a number, without inventing false numbers
-- Use plain text only — no tables, no special characters, no emojis (for ATS compatibility)
-- Do not invent achievements not implied by the notes
+    prompt = f"""You are a professional resume writer helping a candidate write resume content
+for their role as "{job_title}".
 
-Respond with ONLY a JSON array of strings, no preamble, no markdown fences.
+{instruction}
+
+Respond with ONLY valid JSON, no preamble, no markdown fences, using this schema:
+{{"feedback": "<1-2 sentences of feedback, or null if mode is not 'recruiter'>", "bullets": ["bullet 1", "bullet 2", ...]}}
 
 Raw notes:
 ---
@@ -34,7 +52,7 @@ Raw notes:
 ---"""
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=400,
+        max_tokens=500,
         messages=[{"role": "user", "content": prompt}],
     )
     raw = response.content[0].text.strip().replace("```json", "").replace("```", "").strip()

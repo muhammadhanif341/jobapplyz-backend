@@ -263,13 +263,14 @@ def builder_bullets():
 
     job_title = payload.get("job_title", "this role")
     raw_input = payload["raw_input"]
+    mode = payload.get("mode", "improve")
 
     try:
         if MOCK_MODE:
-            bullets = mock_generate_bullets(job_title, raw_input)
+            result = mock_generate_bullets(job_title, raw_input, mode)
         else:
-            bullets = ai_generate_bullets(job_title, raw_input, client)
-        return jsonify({"success": True, "bullets": bullets})
+            result = ai_generate_bullets(job_title, raw_input, client, mode)
+        return jsonify({"success": True, "bullets": result["bullets"], "feedback": result.get("feedback")})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

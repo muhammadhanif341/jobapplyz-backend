@@ -236,6 +236,27 @@
   .ats-icon{font-size:15px; margin-top:1px;}
   .ats-check-label{font-weight:600; font-size:13.5px;}
   .ats-check-note{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+
+  /* Template variations — all remain single-column for ATS safety, styling differs */
+  .tpl-picker{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  .tpl-option{
+    background:var(--card); border:1.5px solid var(--line); border-radius:10px; padding:14px 16px;
+    cursor:pointer; flex:1; min-width:160px; transition:border-color 0.15s;
+  }
+  .tpl-option:hover{border-color:var(--violet);}
+  .tpl-option.selected{border-color:var(--violet); background:var(--violet-soft);}
+  .tpl-option-name{font-weight:700; font-size:13.5px;}
+  .tpl-option-desc{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+
+  .resume-preview.tpl-modern .rp-name{color:var(--violet);}
+  .resume-preview.tpl-modern .rp-section-title{border-bottom-color:var(--violet); color:var(--violet);}
+  .resume-preview.tpl-modern .rp-skills{display:flex; flex-wrap:wrap; gap:6px;}
+  .resume-preview.tpl-modern .rp-skills span{background:var(--violet-soft); color:var(--violet); padding:3px 10px; border-radius:20px; font-size:12px; display:inline-block;}
+  .resume-preview.tpl-modern .rp-skills .rp-skill-sep{display:none;}
+
+  .resume-preview.tpl-european .rp-name{text-align:center; letter-spacing:0.02em;}
+  .resume-preview.tpl-european .rp-contact{text-align:center;}
+  .resume-preview.tpl-european .rp-section-title{text-align:center; letter-spacing:0.12em; border-bottom:none; border-top:1px solid #ccc; padding-top:10px;}
 </style>
 </head>
 <body>
@@ -490,7 +511,11 @@
       </div>
       <div class="b-label">What did you do? (rough notes are fine — AI will polish this)</div>
       <textarea class="b-textarea" id="expRaw" placeholder="e.g. managed a team of 12 technicians, reduced downtime by improving preventive maintenance schedule, handled procurement of spare parts..."></textarea>
-      <button class="btn-outline" style="margin-top:10px;" onclick="generateExpBullets()">✨ Generate bullet points with AI</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn-outline" onclick="generateExpBullets('improve')">✨ Improve Writing</button>
+        <button class="btn-outline" onclick="generateExpBullets('recruiter')">🕵️ Recruiter Review</button>
+        <button class="btn-outline" onclick="generateExpBullets('inspire')">💡 Inspire Me</button>
+      </div>
       <div id="expBulletsPreview"></div>
       <button class="btn-secondary" style="margin-top:16px;" onclick="addExperienceEntry()">Add this job to resume</button>
     </div>
@@ -539,7 +564,21 @@
       <div class="status-line" id="atsStatus"><div class="spinner"></div> Checking your resume against ATS criteria...</div>
     </div>
     <div id="atsResultCard"></div>
-    <div class="resume-preview" id="resumePreview" style="margin-top:20px;"></div>
+    <div class="tpl-picker" id="tplPicker">
+      <div class="tpl-option selected" data-tpl="ats" onclick="selectTemplate('ats')">
+        <div class="tpl-option-name">ATS Template</div>
+        <div class="tpl-option-desc">Maximum readability for automated screening — best for tech, corporate, high-volume roles.</div>
+      </div>
+      <div class="tpl-option" data-tpl="modern" onclick="selectTemplate('modern')">
+        <div class="tpl-option-name">Modern</div>
+        <div class="tpl-option-desc">Clean accent styling, still single-column and ATS-safe.</div>
+      </div>
+      <div class="tpl-option" data-tpl="european" onclick="selectTemplate('european')">
+        <div class="tpl-option-name">European</div>
+        <div class="tpl-option-desc">Centered, formal layout — good for European/multinational employers.</div>
+      </div>
+    </div>
+    <div class="resume-preview tpl-ats" id="resumePreview" style="margin-top:20px;"></div>
     <button class="builder-back" style="margin-top:16px;" onclick="builderBack(5)">← Back to edit</button>
   </div>
 </main>
@@ -767,23 +806,28 @@
   function builderBack(from) { showBuilderStep(from - 1); }
 
   let lastGeneratedBullets = [];
-  async function generateExpBullets() {
+  async function generateExpBullets(mode) {
     const jobTitle = document.getElementById('expTitle').value.trim() || builderData.target_role || 'this role';
     const rawInput = document.getElementById('expRaw').value.trim();
     const previewEl = document.getElementById('expBulletsPreview');
     if (!rawInput) { showToast('Add a few notes about this job first.'); return; }
-    previewEl.innerHTML = '<div class="status-line show"><div class="spinner"></div> Polishing your bullet points...</div>';
+    previewEl.innerHTML = '<div class="status-line show"><div class="spinner"></div> Working on it...</div>';
 
     try {
       const res = await fetch('/resume-builder/bullets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_title: jobTitle, raw_input: rawInput })
+        body: JSON.stringify({ job_title: jobTitle, raw_input: rawInput, mode: mode })
       });
       const data = await res.json();
       if (data.success) {
         lastGeneratedBullets = data.bullets;
-        previewEl.innerHTML = '<ul class="bullet-list">' + data.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+        let html = '';
+        if (data.feedback) {
+          html += `<div class="mock-note" style="background:var(--violet-soft); border-color:#d8d3fb; color:#3d33b8;"><strong>Recruiter note:</strong> ${data.feedback}</div>`;
+        }
+        html += '<ul class="bullet-list">' + data.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+        previewEl.innerHTML = html;
       } else {
         previewEl.innerHTML = `<div style="color:#c0392b; font-size:13px;">Error: ${data.error}</div>`;
       }
@@ -937,6 +981,14 @@
     }
   }
 
+  let selectedTemplate = 'ats';
+  function selectTemplate(tpl) {
+    selectedTemplate = tpl;
+    document.querySelectorAll('.tpl-option').forEach(o => o.classList.toggle('selected', o.dataset.tpl === tpl));
+    const preview = document.getElementById('resumePreview');
+    preview.className = 'resume-preview tpl-' + tpl;
+  }
+
   function renderResumePreview() {
     const d = builderData;
     const contactParts = [d.email, d.phone, d.location, d.linkedin].filter(Boolean);
@@ -948,7 +1000,7 @@
       html += `<div class="rp-section-title">Summary</div><div class="rp-summary">${d.summary}</div>`;
     }
     if (d.skills && d.skills.length) {
-      html += `<div class="rp-section-title">Skills</div><div class="rp-skills">${d.skills.join(', ')}</div>`;
+      html += `<div class="rp-section-title">Skills</div><div class="rp-skills">${d.skills.map(s => `<span>${s}</span>`).join('<span class="rp-skill-sep">, </span>')}</div>`;
     }
     if (d.experience && d.experience.length) {
       html += `<div class="rp-section-title">Work Experience</div>`;
