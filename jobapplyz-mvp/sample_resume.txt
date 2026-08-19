@@ -1,0 +1,24 @@
+Ahmed Raza
+Email: ahmed.raza@example.com | Phone: +92 300 1234567
+Lahore, Pakistan
+
+SUMMARY
+Software engineer with 3 years of experience building web applications using
+React, Node.js, and cloud infrastructure. Looking for remote or Gulf-based
+opportunities in full-stack development.
+
+EXPERIENCE
+Software Engineer — Systems Ltd, Lahore (2022 - Present)
+- Built and maintained React/Node.js web applications for e-commerce clients
+- Deployed services on AWS (EC2, S3, Lambda)
+- Worked with PostgreSQL and MongoDB databases
+
+Junior Developer — TechStart, Lahore (2021 - 2022)
+- Developed REST APIs using Express.js
+- Wrote unit tests with Jest
+
+EDUCATION
+BS Computer Science — University of the Punjab, 2021
+
+SKILLS
+JavaScript, React, Node.js, Express, AWS, PostgreSQL, MongoDB, Git, Docker

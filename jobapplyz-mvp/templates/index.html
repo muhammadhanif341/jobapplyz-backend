@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobApplyz — Your AI job search assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12162b; --ink-soft:#4b4f66; --paper:#faf9f6; --paper-dim:#f0eee8;
+    --card:#ffffff; --emerald:#0e9f6e; --emerald-soft:#e6f7f0;
+    --violet:#5b4cf0; --violet-soft:#efedfe; --line:#e6e4de; --amber:#a3720c; --amber-soft:#fff3d9;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  button{font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:8px; font-size:14px; font-weight:600; transition:background 0.15s, opacity 0.15s, transform 0.1s;}
+  button:disabled{opacity:0.4; cursor:not-allowed;}
+
+  nav{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:20px 6vw; border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);}
+  .brand-mark{
+    width:30px; height:30px; border-radius:8px; background:var(--ink);
+    display:flex; align-items:center; justify-content:center; color:var(--paper);
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+  }
+  .brand-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px;}
+  .nav-tag{font-size:12px; color:var(--ink-soft);}
+
+  /* ============ ONBOARDING ============ */
+  #view-onboarding{
+    min-height:calc(100vh - 73px); display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:6vh 6vw;
+  }
+  .ob-progress{display:flex; gap:6px; margin-bottom:40px;}
+  .ob-dot{width:34px; height:4px; border-radius:2px; background:var(--line); transition:background 0.2s;}
+  .ob-dot.active{background:var(--violet);}
+  .ob-dot.done{background:var(--emerald);}
+
+  .ob-panel{width:100%; max-width:520px; text-align:center;}
+  .ob-step{display:none;}
+  .ob-step.active{display:block; animation:fadeUp 0.35s ease;}
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .ob-eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--violet); margin-bottom:14px; text-transform:uppercase; letter-spacing:0.05em;}
+  .ob-question{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; letter-spacing:-0.01em; margin-bottom:8px;}
+  .ob-hint{color:var(--ink-soft); font-size:14px; margin-bottom:30px;}
+
+  .chip-grid{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:26px;}
+  .ob-chip{
+    background:var(--card); border:1.5px solid var(--line); border-radius:10px;
+    padding:13px 20px; font-size:14px; font-weight:600; cursor:pointer; color:var(--ink);
+    transition:all 0.15s;
+  }
+  .ob-chip:hover{border-color:var(--violet); background:var(--violet-soft);}
+  .ob-chip.selected{border-color:var(--violet); background:var(--violet); color:white;}
+
+  .ob-input{
+    width:100%; padding:15px 18px; border:1.5px solid var(--line); border-radius:10px;
+    font-size:15px; font-family:'Inter',sans-serif; margin-bottom:14px; text-align:center;
+  }
+  .ob-input:focus{outline:none; border-color:var(--violet);}
+
+  .ob-nav{display:flex; justify-content:center; gap:12px; margin-top:8px;}
+  .ob-btn-next{background:var(--ink); color:var(--paper); padding:13px 32px;}
+  .ob-btn-next:hover:not(:disabled){background:var(--violet);}
+  .ob-btn-back{background:transparent; color:var(--ink-soft); padding:13px 18px;}
+  .ob-btn-back:hover{color:var(--ink);}
+
+  .ob-summary{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px;
+    text-align:left; margin-bottom:26px;
+  }
+  .ob-summary-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .ob-summary-row:last-child{border-bottom:none;}
+  .ob-summary-row .k{color:var(--ink-soft);}
+  .ob-summary-row .v{font-weight:600;}
+
+  /* ============ DASHBOARD ============ */
+  #view-dashboard{display:none;}
+  main{max-width:1200px; margin:0 auto; padding:5vh 6vw 10vh;}
+
+  .greet-bar{
+    display:flex; justify-content:space-between; align-items:center; background:var(--ink); color:var(--paper);
+    border-radius:14px; padding:22px 26px; margin-bottom:34px;
+  }
+  .greet-text{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px;}
+  .greet-sub{font-size:12.5px; color:#b7b8c9; margin-top:4px;}
+  .edit-link{background:rgba(255,255,255,0.1); color:var(--paper); padding:8px 14px; font-size:12.5px; border-radius:7px;}
+  .edit-link:hover{background:rgba(255,255,255,0.18);}
+
+  .section-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; margin:38px 0 16px;}
+  .section-title:first-of-type{margin-top:0;}
+
+  .toolkit-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;}
+  .tool-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px;
+    cursor:pointer; transition:border-color 0.15s, transform 0.1s; position:relative;
+  }
+  .tool-card:hover{border-color:var(--violet); transform:translateY(-2px);}
+  .tool-card.active-tool{border-color:var(--emerald);}
+  .tool-icon{font-size:20px; margin-bottom:10px;}
+  .tool-name{font-weight:600; font-size:13.5px; margin-bottom:4px;}
+  .tool-desc{font-size:11.5px; color:var(--ink-soft); line-height:1.4;}
+  .tool-badge{
+    position:absolute; top:14px; right:14px; font-size:9.5px; font-weight:700; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; letter-spacing:0.03em;
+  }
+  .badge-live{background:var(--emerald-soft); color:var(--emerald);}
+  .badge-soon{background:var(--paper-dim); color:var(--ink-soft);}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px; margin-bottom:20px;}
+  .card-label{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--violet); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:14px; display:block;}
+
+  .drop{border:1.5px dashed var(--line); border-radius:10px; padding:32px; text-align:center; cursor:pointer; transition:border-color 0.15s, background 0.15s;}
+  .drop:hover{border-color:var(--violet); background:var(--violet-soft);}
+  .drop-icon{font-size:22px; margin-bottom:8px;}
+  .drop-text{font-size:14px; color:var(--ink-soft);}
+  input[type=file]{display:none;}
+  #filename{margin-top:12px; font-size:13px; color:var(--ink); font-weight:500;}
+
+  .btn-primary{background:var(--ink); color:var(--paper); padding:13px 20px; width:100%; margin-top:16px;}
+  .btn-primary:hover:not(:disabled){background:var(--violet);}
+  .btn-secondary{background:var(--emerald); color:white; padding:13px 20px; width:100%;}
+  .btn-secondary:hover:not(:disabled){background:#0c8a5f;}
+  .btn-outline{background:transparent; color:var(--violet); border:1px solid var(--violet); padding:8px 14px; font-size:12.5px;}
+  .btn-outline:hover:not(:disabled){background:var(--violet-soft);}
+  .btn-dark{background:var(--ink); color:var(--paper); padding:7px 13px; font-size:12px;}
+
+  .status-line{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--violet); margin-top:14px; display:none;}
+  .status-line.show{display:flex;}
+  .spinner{width:13px; height:13px; border:2px solid var(--violet-soft); border-top-color:var(--violet); border-radius:50%; animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .profile-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;}
+  .profile-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px;}
+  .profile-contact{font-size:12.5px; color:var(--ink-soft); margin-top:6px;}
+  .profile-summary{font-size:14px; color:#333; line-height:1.6; margin:16px 0; padding-top:16px; border-top:1px solid var(--line);}
+  .chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:6px;}
+  .chip{background:var(--paper-dim); color:var(--ink); font-size:12px; font-weight:500; padding:5px 11px; border-radius:20px;}
+  .field-label{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-top:16px; margin-bottom:8px; font-weight:600;}
+  .mock-note{margin-top:18px; padding:12px 14px; background:var(--amber-soft); border:1px solid #f0dcb0; border-radius:8px; font-size:12.5px; color:var(--amber);}
+
+  .job-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:14px;}
+  .job-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;}
+  .job-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;}
+  .job-company{font-size:13px; color:var(--ink-soft); margin-top:3px;}
+  .job-loc{font-size:12px; color:#9b9aa8; margin-top:3px;}
+  .score-pill{font-family:'JetBrains Mono',monospace; font-weight:600; font-size:13px; padding:5px 12px; border-radius:20px; white-space:nowrap;}
+  .score-high{background:var(--emerald-soft); color:var(--emerald);}
+  .score-mid{background:var(--amber-soft); color:var(--amber);}
+  .score-low{background:var(--paper-dim); color:var(--ink-soft);}
+  .job-reason{font-size:13px; color:#555; margin-top:10px;}
+  .cl-box{margin-top:14px; background:var(--paper-dim); border-radius:8px; padding:16px; font-size:13.5px; line-height:1.6; white-space:pre-wrap; display:none;}
+  .cl-box.show{display:block;}
+  .empty-state{text-align:center; padding:30px; color:var(--ink-soft); font-size:14px;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); padding:13px 22px; border-radius:10px;
+    font-size:13.5px; opacity:0; transition:all 0.25s; pointer-events:none; z-index:100;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:720px){
+    .toolkit-grid{grid-template-columns:repeat(2, 1fr);}
+    .greet-bar{flex-direction:column; align-items:flex-start; gap:12px;}
+  }
+  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} .ob-step.active{animation:none;} }
+
+  /* ============ RESUME BUILDER ============ */
+  #view-builder{display:none;}
+  .builder-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;}
+  .builder-back{background:transparent; color:var(--ink-soft); padding:8px 0; font-size:13px;}
+  .builder-back:hover{color:var(--ink);}
+
+  .b-view{display:none;}
+  .b-view.active{display:block; animation:fadeUp 0.3s ease;}
+  .b-label{font-size:12px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.03em; margin:16px 0 6px;}
+  .b-label:first-child{margin-top:0;}
+  .b-input, .b-textarea{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:8px;
+    font-size:14px; font-family:'Inter',sans-serif; margin-bottom:4px;
+  }
+  .b-textarea{resize:vertical; min-height:80px;}
+  .b-input:focus, .b-textarea:focus{outline:none; border-color:var(--violet);}
+  .b-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .b-tip{font-size:12px; color:var(--emerald); background:var(--emerald-soft); padding:8px 12px; border-radius:7px; margin:8px 0;}
+
+  .entry-card{background:var(--paper-dim); border-radius:10px; padding:16px; margin-bottom:12px;}
+  .entry-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .entry-title{font-weight:600; font-size:14px;}
+  .entry-remove{background:transparent; color:#c0392b; font-size:12px; padding:4px 8px;}
+  .bullet-list{margin:10px 0 0 18px; font-size:13.5px;}
+  .bullet-list li{margin-bottom:4px;}
+
+  .skill-input-row{display:flex; gap:8px; margin-bottom:10px;}
+  .skill-input-row .b-input{margin-bottom:0;}
+  .add-skill-btn{background:var(--ink); color:white; padding:12px 18px; white-space:nowrap;}
+
+  .resume-preview{
+    background:white; border:1px solid var(--line); border-radius:10px; padding:32px;
+    font-family:'Inter',sans-serif; color:#1a1a1a; max-width:100%; font-size:13px;
+  }
+  .rp-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px;}
+  .rp-contact{font-size:11.5px; color:#555; margin-top:4px;}
+  .rp-section-title{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1.5px solid #1a1a1a; padding-bottom:4px; margin:16px 0 8px;}
+  .rp-summary{font-size:12.5px; line-height:1.6;}
+  .rp-skills{font-size:12.5px;}
+  .rp-entry{margin-bottom:12px;}
+  .rp-entry-head{display:flex; justify-content:space-between; font-size:12.5px; font-weight:600;}
+  .rp-entry-sub{font-size:11.5px; color:#555; margin-bottom:6px;}
+  .rp-entry ul{margin:0 0 0 16px; font-size:12px;}
+  .rp-entry li{margin-bottom:3px;}
+  .rp-placeholder{color:#aaa; font-style:italic;}
+
+  @media print{
+    nav, .builder-nav, .editor-form-col, .preview-actions, .completeness-badge, .mobile-preview-toggle{display:none !important;}
+    body{background:white;}
+    .editor-grid{display:block !important;}
+    .resume-preview{border:none; padding:0;}
+  }
+
+  .ats-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; margin:16px 0;}
+  .ats-score-row{display:flex; align-items:center; gap:16px; margin-bottom:14px;}
+  .ats-score-num{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:32px;}
+  .ats-score-label{font-size:12.5px; color:var(--ink-soft);}
+  .ats-check-row{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-top:1px solid var(--line);}
+  .ats-check-row:first-of-type{border-top:none;}
+  .ats-icon{font-size:14px; margin-top:1px;}
+  .ats-check-label{font-weight:600; font-size:13px;}
+  .ats-check-note{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  /* Template variations — all remain single-column for ATS safety, styling differs */
+  .resume-preview.tpl-modern .rp-name{color:var(--violet);}
+  .resume-preview.tpl-modern .rp-section-title{border-bottom-color:var(--violet); color:var(--violet);}
+  .resume-preview.tpl-modern .rp-skills{display:flex; flex-wrap:wrap; gap:6px;}
+  .resume-preview.tpl-modern .rp-skills span{background:var(--violet-soft); color:var(--violet); padding:3px 10px; border-radius:20px; font-size:11px; display:inline-block;}
+  .resume-preview.tpl-modern .rp-skills .rp-skill-sep{display:none;}
+
+  .resume-preview.tpl-european .rp-name{text-align:center; letter-spacing:0.02em;}
+  .resume-preview.tpl-european .rp-contact{text-align:center;}
+  .resume-preview.tpl-european .rp-section-title{text-align:center; letter-spacing:0.12em; border-bottom:none; border-top:1px solid #ccc; padding-top:10px;}
+
+  /* Classic — traditional serif, formal, black & white */
+  .resume-preview.tpl-classic{font-family:Georgia, 'Times New Roman', serif;}
+  .resume-preview.tpl-classic .rp-name{font-family:Georgia, serif; letter-spacing:0.01em;}
+  .resume-preview.tpl-classic .rp-section-title{font-family:Georgia, serif; text-transform:none; font-size:13px; border-bottom:1px solid #1a1a1a;}
+
+  /* Bold — dark header band behind name */
+  .resume-preview.tpl-bold{padding:0;}
+  .resume-preview.tpl-bold .rp-name, .resume-preview.tpl-bold .rp-contact{
+    background:#1a1a2e; color:white; padding:24px 32px 4px; margin:0;
+  }
+  .resume-preview.tpl-bold .rp-contact{padding-top:0; padding-bottom:24px; color:#c9c9d9;}
+  .resume-preview.tpl-bold > div:not(.rp-name):not(.rp-contact){padding-left:32px; padding-right:32px;}
+  .resume-preview.tpl-bold .rp-section-title{color:#e94560; border-bottom-color:#e94560;}
+
+  /* Minimalist — lots of whitespace, thin lines, muted */
+  .resume-preview.tpl-minimalist{padding:44px;}
+  .resume-preview.tpl-minimalist .rp-name{font-weight:500; letter-spacing:0.04em;}
+  .resume-preview.tpl-minimalist .rp-section-title{border-bottom:none; color:#999; font-weight:500; letter-spacing:0.08em;}
+  .resume-preview.tpl-minimalist .rp-entry-head{font-weight:400;}
+
+  /* Creative — teal accent bar + icon-style bullets */
+  .resume-preview.tpl-creative{border-left:5px solid #0d9488; padding-left:28px;}
+  .resume-preview.tpl-creative .rp-name{color:#0d9488;}
+  .resume-preview.tpl-creative .rp-section-title{border-bottom-color:#0d9488; color:#0d9488;}
+  .resume-preview.tpl-creative .rp-skills span{background:#e6fffa; color:#0d9488; padding:3px 10px; border-radius:20px; font-size:11px; display:inline-block; margin:2px 0;}
+  .resume-preview.tpl-creative .rp-skills .rp-skill-sep{display:none;}
+
+  /* Executive — navy + gold, formal for senior roles */
+  .resume-preview.tpl-executive .rp-name{color:#0b3d3b; text-transform:uppercase; letter-spacing:0.03em; font-size:19px;}
+  .resume-preview.tpl-executive .rp-section-title{color:#0b3d3b; border-bottom:2px solid #c9a227; text-transform:uppercase;}
+  .resume-preview.tpl-executive .rp-entry-head{font-weight:700;}
+
+  /* ---- Phase 1: choice screen ---- */
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:640px;}
+  .choice-card{
+    background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:26px;
+    cursor:pointer; transition:border-color 0.15s, transform 0.1s;
+  }
+  .choice-card:hover{border-color:var(--violet); transform:translateY(-2px);}
+  .choice-card.selected{border-color:var(--violet); background:var(--violet-soft);}
+  .choice-icon{font-size:26px; margin-bottom:10px;}
+  .choice-title{font-weight:700; font-size:15px; margin-bottom:6px;}
+  .choice-desc{font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+  .upload-zone{
+    border:2px dashed var(--line); border-radius:10px; padding:28px; text-align:center;
+    margin-top:16px; cursor:pointer; transition:border-color 0.15s, background 0.15s;
+  }
+  .upload-zone.dragover{border-color:var(--violet); background:var(--violet-soft);}
+  .upload-zone:hover{border-color:var(--violet);}
+
+  /* ---- Phase 2: template gallery ---- */
+  .tpl-gallery{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;}
+  .tpl-gcard{
+    background:var(--card); border:1.5px solid var(--line); border-radius:14px; overflow:hidden;
+    cursor:pointer; transition:border-color 0.15s, transform 0.15s;
+  }
+  .tpl-gcard:hover{border-color:var(--violet); transform:translateY(-3px);}
+  .tpl-gpreview{
+    height:150px; background:var(--paper-dim); padding:16px; position:relative; overflow:hidden;
+  }
+  .tpl-gpreview .mini-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px;}
+  .tpl-gpreview .mini-line{height:5px; background:var(--line); border-radius:3px; margin-top:7px;}
+  .tpl-gpreview .mini-line.short{width:55%;}
+  .tpl-badge{
+    position:absolute; top:10px; right:10px; font-size:9px; font-weight:700; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; letter-spacing:0.03em; background:var(--ink); color:white;
+  }
+  .tpl-gbody{padding:14px 16px;}
+  .tpl-gname{font-weight:700; font-size:13.5px;}
+  .tpl-gdesc{font-size:11.5px; color:var(--ink-soft); margin-top:4px; line-height:1.4;}
+  .tpl-use-btn{width:100%; margin-top:10px; background:var(--ink); color:white; padding:9px; font-size:12.5px;}
+  .tpl-gcard:hover .tpl-use-btn{background:var(--violet);}
+
+  /* ---- Phase 3: split-screen editor ---- */
+  .editor-grid{display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start;}
+  .editor-form-col{min-width:0;}
+  .editor-preview-col{position:sticky; top:20px;}
+  .progress-wrap{margin-bottom:20px;}
+  .progress-top-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .progress-step-label{font-size:12.5px; font-weight:600; color:var(--ink-soft);}
+  .progress-pct{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--violet); font-weight:600;}
+  .progress-bar-track{height:7px; background:var(--paper-dim); border-radius:4px; overflow:hidden;}
+  .progress-bar-fill{height:100%; background:var(--violet); border-radius:4px; transition:width 0.3s ease;}
+
+  .estep{display:none;}
+  .estep.active{display:block; animation:fadeUp 0.25s ease;}
+  .estep-nav{display:flex; justify-content:space-between; margin-top:20px;}
+
+  .suggest-panel{background:var(--violet-soft); border-radius:10px; padding:14px; margin-top:10px;}
+  .suggest-panel-label{font-size:11.5px; font-weight:700; color:var(--violet); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px;}
+  .suggest-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background:white; border-radius:7px; padding:9px 12px; margin-bottom:7px; font-size:12.5px;
+  }
+  .suggest-add-btn{background:var(--violet); color:white; padding:4px 10px; font-size:11px; white-space:nowrap;}
+  .recruiter-feedback{background:#fff3d9; color:#7a5a1f; border-radius:8px; padding:10px 12px; font-size:12px; margin-bottom:10px;}
+
+  .completeness-badge{
+    display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; padding:12px 16px; margin-bottom:14px;
+  }
+  .completeness-ring{
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px; color:white; flex-shrink:0;
+  }
+  .completeness-text{font-size:12px; color:var(--ink-soft); line-height:1.4;}
+  .completeness-text strong{color:var(--ink);}
+
+  .preview-actions{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+
+  .mobile-preview-toggle{
+    display:none; position:fixed; bottom:20px; right:20px; z-index:50; background:var(--ink); color:white;
+    padding:13px 20px; border-radius:30px; font-size:13px; font-weight:600; box-shadow:0 8px 20px rgba(18,22,43,0.25);
+  }
+
+  @media (max-width:860px){
+    .editor-grid{display:block;}
+    .editor-preview-col{
+      position:fixed; top:0; right:0; bottom:0; width:100%; max-width:420px; background:var(--paper);
+      transform:translateX(100%); transition:transform 0.25s ease; z-index:60; padding:20px; overflow-y:auto;
+      box-shadow:-10px 0 30px rgba(0,0,0,0.15);
+    }
+    .editor-preview-col.mobile-open{transform:translateX(0);}
+    .mobile-preview-toggle{display:block;}
+    .choice-grid{grid-template-columns:1fr;}
+    .tpl-gallery{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} .b-view.active, .estep.active{animation:none;} }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="brand">
+    <div class="brand-mark">J</div>
+    <div class="brand-name">JobApplyz</div>
+  </a>
+  <div class="nav-tag mono">AI JOB SEARCH ASSISTANT</div>
+</nav>
+
+<!-- ============ ONBOARDING ============ -->
+<div id="view-onboarding">
+  <div class="ob-progress" id="obProgress"></div>
+
+  <div class="ob-panel">
+    <!-- Step 1: Location -->
+    <div class="ob-step" data-step="0">
+      <div class="ob-eyebrow">Question 1 of 4</div>
+      <div class="ob-question">Where would you like to work?</div>
+      <div class="ob-hint">We'll pull live openings from this market.</div>
+      <div class="chip-grid" id="chipLocation">
+        <div class="ob-chip" data-value="pk">🇵🇰 Pakistan</div>
+        <div class="ob-chip" data-value="ae">🇦🇪 UAE</div>
+        <div class="ob-chip" data-value="sa">🇸🇦 Saudi Arabia</div>
+        <div class="ob-chip" data-value="qa">🇶🇦 Qatar</div>
+        <div class="ob-chip" data-value="om">🇴🇲 Oman</div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn-next" id="next0" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Role/field -->
+    <div class="ob-step" data-step="1">
+      <div class="ob-eyebrow">Question 2 of 4</div>
+      <div class="ob-question">What kind of work are you looking for?</div>
+      <div class="ob-hint">Your job title, field, or the role you want next.</div>
+      <input type="text" class="ob-input" id="inputRole" placeholder="e.g. Software Engineer, Production Manager, Sales">
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back1">Back</button>
+        <button class="ob-btn-next" id="next1" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Experience -->
+    <div class="ob-step" data-step="2">
+      <div class="ob-eyebrow">Question 3 of 4</div>
+      <div class="ob-question">How much experience do you have?</div>
+      <div class="ob-hint">This helps us match you to the right seniority level.</div>
+      <div class="chip-grid" id="chipExperience">
+        <div class="ob-chip" data-value="Entry-level (0-2 yrs)">Entry-level (0–2 yrs)</div>
+        <div class="ob-chip" data-value="Mid-level (3-5 yrs)">Mid-level (3–5 yrs)</div>
+        <div class="ob-chip" data-value="Senior (6-10 yrs)">Senior (6–10 yrs)</div>
+        <div class="ob-chip" data-value="Expert (10+ yrs)">Expert (10+ yrs)</div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back2">Back</button>
+        <button class="ob-btn-next" id="next2" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Current situation -->
+    <div class="ob-step" data-step="3">
+      <div class="ob-eyebrow">Question 4 of 4</div>
+      <div class="ob-question">Tell us where you're at</div>
+      <div class="ob-hint">So we can find the right opportunity for your situation.</div>
+      <div class="chip-grid" id="chipSituation">
+        <div class="ob-chip" data-value="Employed, open to offers">Employed, open to offers</div>
+        <div class="ob-chip" data-value="Unemployed, actively searching">Unemployed, actively searching</div>
+        <div class="ob-chip" data-value="Student / recent graduate">Student / recent graduate</div>
+        <div class="ob-chip" data-value="Returning after a break">Returning after a break</div>
+      </div>
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back3">Back</button>
+        <button class="ob-btn-next" id="next3" disabled>Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Confirmation -->
+    <div class="ob-step" data-step="4">
+      <div class="ob-eyebrow">You're all set</div>
+      <div class="ob-question">Let's find your next role</div>
+      <div class="ob-hint">Here's what we'll search for — you can change this anytime.</div>
+      <div class="ob-summary" id="obSummary"></div>
+      <div class="ob-nav">
+        <button class="ob-btn-back" id="back4">Back</button>
+        <button class="ob-btn-next" id="finishOnboarding">Go to my dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="view-dashboard">
+<main>
+  <div class="greet-bar">
+    <div>
+      <div class="greet-text" id="greetText">Looking for roles</div>
+      <div class="greet-sub" id="greetSub">Set your preferences to get started</div>
+    </div>
+    <button class="edit-link" id="editPrefsBtn">Edit preferences</button>
+  </div>
+
+  <div class="section-title">Your toolkit</div>
+  <div class="toolkit-grid">
+    <div class="tool-card active-tool" data-tool="resume">
+      <span class="tool-badge badge-live">Live</span>
+      <div class="tool-icon">📄</div>
+      <div class="tool-name">Resume &amp; Matching</div>
+      <div class="tool-desc">Parse your resume and find real matching jobs</div>
+    </div>
+    <div class="tool-card" data-tool="builder">
+      <span class="tool-badge badge-live">Live</span>
+      <div class="tool-icon">🛠️</div>
+      <div class="tool-name">AI Resume Builder</div>
+      <div class="tool-desc">Build a resume from scratch with AI</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🎯</div>
+      <div class="tool-name">AI Resume Tailor</div>
+      <div class="tool-desc">Rewrite your resume for one specific job</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">Resume Translator</div>
+      <div class="tool-desc">Translate your resume into another language</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">🎤</div>
+      <div class="tool-name">Interview Buddy</div>
+      <div class="tool-desc">Practice mock interviews with AI feedback</div>
+    </div>
+    <div class="tool-card" data-tool="soon">
+      <span class="tool-badge badge-soon">Soon</span>
+      <div class="tool-icon">⚡</div>
+      <div class="tool-name">Auto-Apply</div>
+      <div class="tool-desc">Review-and-submit applications automatically</div>
+    </div>
+  </div>
+
+  <div class="section-title">Resume &amp; Matching</div>
+
+  <div class="card">
+    <span class="card-label">Resume file</span>
+    <div class="drop" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-icon">📄</div>
+      <div class="drop-text">Click to choose a PDF or .txt file</div>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf,.txt">
+    <div id="filename"></div>
+    <button class="btn-primary" id="uploadBtn" disabled>Parse Resume</button>
+    <div class="status-line" id="status"><div class="spinner"></div> Reading resume and extracting details...</div>
+  </div>
+
+  <div id="profileCardWrap"></div>
+
+  <div id="matchSection" style="display:none;">
+    <button class="btn-secondary" id="matchBtn">Find Matching Jobs</button>
+    <div class="status-line" id="matchStatus"><div class="spinner"></div> Scoring live job listings against your resume...</div>
+  </div>
+
+  <div id="jobsSection"></div>
+</main>
+</div>
+
+<!-- ============ RESUME BUILDER ============ -->
+<div id="view-builder">
+<main>
+  <div class="builder-nav">
+    <button class="builder-back" id="builderBackBtn">← Back to dashboard</button>
+  </div>
+
+  <!-- PHASE 1: Choice -->
+  <div class="b-view active" data-bstep="choice">
+    <div class="section-title" style="margin-top:0;">Let's build your resume</div>
+    <p style="color:var(--ink-soft); font-size:14px; margin-bottom:24px;">Start from scratch, or upload what you already have and we'll improve it.</p>
+    <div class="choice-grid">
+      <div class="choice-card" id="choiceScratch" onclick="selectPath('scratch')">
+        <div class="choice-icon">📝</div>
+        <div class="choice-title">Create a New Resume</div>
+        <div class="choice-desc">Answer a few guided questions. AI helps with wording as you go.</div>
+      </div>
+      <div class="choice-card" id="choiceUpload" onclick="selectPath('upload')">
+        <div class="choice-icon">📤</div>
+        <div class="choice-title">Upload &amp; Improve Existing CV</div>
+        <div class="choice-desc">We'll read your current resume and pre-fill everything for you to polish.</div>
+      </div>
+    </div>
+
+    <div id="uploadZoneWrap" style="display:none; max-width:640px;">
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('builderFileInput').click()">
+        <div class="drop-icon">📄</div>
+        <div class="drop-text">Drag &amp; drop your resume here, or click to choose a PDF or .txt file</div>
+      </div>
+      <input type="file" id="builderFileInput" accept=".pdf,.txt">
+      <div id="builderUploadFilename" style="margin-top:10px; font-size:13px;"></div>
+      <div class="status-line" id="builderUploadStatus"><div class="spinner"></div> Reading and parsing your resume...</div>
+    </div>
+  </div>
+
+  <!-- PHASE 2: Template gallery -->
+  <div class="b-view" data-bstep="templates">
+    <div class="section-title" style="margin-top:0;">Choose a template</div>
+    <p style="color:var(--ink-soft); font-size:14px; margin-bottom:24px;">All templates are single-column underneath the styling, so every one stays ATS-safe.</p>
+    <div class="tpl-gallery">
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('european')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge">European Format</span>
+          <div class="mini-name" style="text-align:center;">JOHN DOE</div>
+          <div class="mini-line short" style="margin:8px auto 0;"></div>
+          <div class="mini-line" style="margin-top:14px;"></div>
+          <div class="mini-line short"></div>
+          <div class="mini-line"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">European</div>
+          <div class="tpl-gdesc">Centered, formal layout — suited to Gulf, European &amp; multinational employers.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('modern')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:var(--violet);">Recommended</span>
+          <div class="mini-name">John Doe</div>
+          <div class="mini-line short"></div>
+          <div class="mini-line" style="margin-top:14px; background:var(--violet-soft);"></div>
+          <div class="mini-line short" style="background:var(--violet-soft);"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Modern</div>
+          <div class="tpl-gdesc">Sleek accent styling and skill tags — a fresh, contemporary look.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('ats')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:var(--emerald);">ATS Template</span>
+          <div class="mini-name">John Doe</div>
+          <div class="mini-line short"></div>
+          <div class="mini-line" style="margin-top:14px;"></div>
+          <div class="mini-line"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">ATS</div>
+          <div class="tpl-gdesc">Text-first, maximum readability — best odds of passing automated screening.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('classic')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:#444;">Classic</span>
+          <div class="mini-name" style="font-family:Georgia,serif;">John Doe</div>
+          <div class="mini-line short"></div>
+          <div class="mini-line" style="margin-top:14px;"></div>
+          <div class="mini-line"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Classic</div>
+          <div class="tpl-gdesc">Traditional serif styling — a formal choice for law, finance, and academia.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('bold')">
+        <div class="tpl-gpreview" style="background:#1a1a2e; padding:16px;">
+          <span class="tpl-badge" style="background:#e94560;">Bold</span>
+          <div class="mini-name" style="color:white; margin-top:26px;">John Doe</div>
+          <div class="mini-line short" style="background:#3a3a5c;"></div>
+          <div class="mini-line" style="margin-top:14px; background:#3a3a5c;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Bold</div>
+          <div class="tpl-gdesc">Dark header band makes your name the focal point — stands out in a stack.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('minimalist')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:#999;">Minimalist</span>
+          <div class="mini-name" style="letter-spacing:0.04em;">John Doe</div>
+          <div class="mini-line short" style="background:#f0f0f0;"></div>
+          <div class="mini-line" style="margin-top:18px; background:#f0f0f0;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Minimalist</div>
+          <div class="tpl-gdesc">Lots of whitespace, thin lines, muted tones — lets your content speak.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('creative')">
+        <div class="tpl-gpreview" style="border-left:5px solid #0d9488; padding-left:11px;">
+          <span class="tpl-badge" style="background:#0d9488;">Creative</span>
+          <div class="mini-name" style="color:#0d9488;">John Doe</div>
+          <div class="mini-line short" style="background:#e6fffa;"></div>
+          <div class="mini-line" style="margin-top:14px; background:#e6fffa;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Creative</div>
+          <div class="tpl-gdesc">Teal accent bar and pill-style skills — for design, marketing &amp; media roles.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('executive')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:#0b3d3b;">Executive</span>
+          <div class="mini-name" style="color:#0b3d3b; text-transform:uppercase;">John Doe</div>
+          <div class="mini-line short" style="background:#c9a227;"></div>
+          <div class="mini-line" style="margin-top:14px;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Executive</div>
+          <div class="tpl-gdesc">Navy &amp; gold accents, formal spacing — built for senior and leadership roles.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+    </div>
+    <button class="builder-back" style="margin-top:20px;" onclick="showBuilderStep('choice')">← Back</button>
+  </div>
+
+  <!-- PHASE 3: Split-screen editor -->
+  <div class="b-view" data-bstep="editor">
+    <div class="editor-grid">
+
+      <div class="editor-form-col">
+        <div class="progress-wrap">
+          <div class="progress-top-row">
+            <span class="progress-step-label" id="progressStepLabel">Step 1 of 4 — Personal Info</span>
+            <span class="progress-pct" id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBarFill" style="width:0%;"></div></div>
+        </div>
+
+        <!-- E0: Personal Info -->
+        <div class="estep active" data-estep="0">
+          <div class="card">
+            <span class="card-label">Personal information</span>
+            <div class="b-label">Full name</div>
+            <input class="b-input" id="bName" oninput="onFieldInput()" placeholder="Muhammad Hanif">
+            <div class="b-row">
+              <div><div class="b-label">Email</div><input class="b-input" id="bEmail" oninput="onFieldInput()" placeholder="you@example.com"></div>
+              <div><div class="b-label">Phone</div><input class="b-input" id="bPhone" oninput="onFieldInput()" placeholder="+92 300 1234567"></div>
+            </div>
+            <div class="b-row">
+              <div><div class="b-label">Location</div><input class="b-input" id="bLocation" oninput="onFieldInput()" placeholder="Jeddah, Saudi Arabia"></div>
+              <div><div class="b-label">LinkedIn (optional)</div><input class="b-input" id="bLinkedin" oninput="onFieldInput()" placeholder="linkedin.com/in/..."></div>
+            </div>
+            <div class="b-label">Target role</div>
+            <input class="b-input" id="bTargetRole" oninput="onFieldInput()" placeholder="e.g. Production Manager">
+            <div class="b-tip">💡 Tip: Adding a target role helps our AI tailor your summary and bullet points.</div>
+          </div>
+        </div>
+
+        <!-- E1: Work Experience -->
+        <div class="estep" data-estep="1">
+          <div class="card">
+            <span class="card-label">Work experience</span>
+            <div id="experienceEntries"></div>
+            <div class="b-label">Job title</div>
+            <input class="b-input" id="expTitle" placeholder="Production Manager">
+            <div class="b-row">
+              <div><div class="b-label">Company</div><input class="b-input" id="expCompany" placeholder="Company name"></div>
+              <div><div class="b-label">Dates</div><input class="b-input" id="expDates" placeholder="2020 - Present"></div>
+            </div>
+            <div class="b-label">What did you do? (rough notes are fine)</div>
+            <textarea class="b-textarea" id="expRaw" placeholder="e.g. managed a team of 12 technicians, reduced downtime..."></textarea>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+              <button class="btn-outline" onclick="generateExpBullets('improve')">✨ AI Suggestions</button>
+              <button class="btn-outline" onclick="generateExpBullets('recruiter')">🕵️ Recruiter Review</button>
+              <button class="btn-outline" onclick="generateExpBullets('inspire')">💡 Inspire Me</button>
+            </div>
+            <div id="expBulletsPreview"></div>
+            <div class="b-tip">💡 Tip: Adding quantified metrics (numbers, %, team size) increases interview chances.</div>
+            <button class="btn-secondary" style="margin-top:14px;" onclick="addExperienceEntry()">Add this job to resume</button>
+          </div>
+        </div>
+
+        <!-- E2: Education -->
+        <div class="estep" data-estep="2">
+          <div class="card">
+            <span class="card-label">Education</span>
+            <div id="educationEntries"></div>
+            <div class="b-label">Degree</div>
+            <input class="b-input" id="eduDegree" placeholder="BS Mechanical Engineering">
+            <div class="b-row">
+              <div><div class="b-label">Institution</div><input class="b-input" id="eduInstitution" placeholder="University name"></div>
+              <div><div class="b-label">Year</div><input class="b-input" id="eduYear" placeholder="2019"></div>
+            </div>
+            <button class="btn-secondary" style="margin-top:10px;" onclick="addEducationEntry()">Add to resume</button>
+          </div>
+        </div>
+
+        <!-- E3: Skills & Languages -->
+        <div class="estep" data-estep="3">
+          <div class="card">
+            <span class="card-label">Skills</span>
+            <div class="skill-input-row">
+              <input class="b-input" id="skillInput" placeholder="Type a skill and press Enter">
+              <button class="add-skill-btn" onclick="addSkill()">Add</button>
+            </div>
+            <div class="chip-row" id="skillChips"></div>
+          </div>
+          <div class="card">
+            <span class="card-label">Languages</span>
+            <div class="skill-input-row">
+              <input class="b-input" id="langInput" placeholder="e.g. English (Fluent), Arabic (Basic)">
+              <button class="add-skill-btn" onclick="addLanguage()">Add</button>
+            </div>
+            <div class="chip-row" id="langChips"></div>
+          </div>
+        </div>
+
+        <div class="estep-nav">
+          <button class="btn-outline" id="estepBackBtn" onclick="editorBack()">Back</button>
+          <button class="btn-primary" id="estepNextBtn" style="display:inline-block; width:auto; margin-top:0;" onclick="editorNext()">Continue</button>
+        </div>
+      </div>
+
+      <div class="editor-preview-col" id="previewCol">
+        <div class="completeness-badge">
+          <div class="completeness-ring" id="completenessRing">0%</div>
+          <div class="completeness-text" id="completenessText">Your resume is just getting started. <strong>Fill in each section</strong> to improve this score.</div>
+        </div>
+        <div class="preview-actions">
+          <button class="btn-outline" onclick="generateBuilderSummary()">✨ AI Summary</button>
+          <button class="btn-outline" onclick="checkAtsScore()">📊 ATS Score</button>
+          <button class="btn-dark" onclick="window.print()">⬇ Download PDF</button>
+        </div>
+        <div class="status-line" id="summaryStatus"><div class="spinner"></div> Writing your professional summary...</div>
+        <div class="status-line" id="atsStatus"><div class="spinner"></div> Checking your resume against ATS criteria...</div>
+        <div id="atsResultCard"></div>
+        <div class="resume-preview tpl-ats" id="resumePreview"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="mobile-preview-toggle" id="mobilePreviewToggle" onclick="toggleMobilePreview()">👁 Preview</button>
+</main>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+  /* ---------- Onboarding logic ---------- */
+  const TOTAL_STEPS = 5;
+  let currentStep = 0;
+  const onboarding = { location: null, locationLabel: null, role: null, experience: null, situation: null };
+
+  const progressEl = document.getElementById('obProgress');
+  for (let i = 0; i < TOTAL_STEPS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'ob-dot';
+    dot.id = 'dot' + i;
+    progressEl.appendChild(dot);
+  }
+
+  function updateProgress() {
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const dot = document.getElementById('dot' + i);
+      dot.classList.remove('active', 'done');
+      if (i < currentStep) dot.classList.add('done');
+      else if (i === currentStep) dot.classList.add('active');
+    }
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.ob-step[data-step="${n}"]`).classList.add('active');
+    currentStep = n;
+    updateProgress();
+  }
+
+  function setupChipGroup(groupId, nextBtnId, onSelect) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll('.ob-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.ob-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        onSelect(chip.dataset.value, chip.textContent);
+        document.getElementById(nextBtnId).disabled = false;
+      });
+    });
+  }
+
+  setupChipGroup('chipLocation', 'next0', (val, label) => { onboarding.location = val; onboarding.locationLabel = label.trim(); });
+  setupChipGroup('chipExperience', 'next2', (val) => { onboarding.experience = val; });
+  setupChipGroup('chipSituation', 'next3', (val) => { onboarding.situation = val; });
+
+  document.getElementById('inputRole').addEventListener('input', (e) => {
+    onboarding.role = e.target.value.trim();
+    document.getElementById('next1').disabled = onboarding.role.length === 0;
+  });
+
+  document.getElementById('next0').addEventListener('click', () => showStep(1));
+  document.getElementById('back1').addEventListener('click', () => showStep(0));
+  document.getElementById('next1').addEventListener('click', () => showStep(2));
+  document.getElementById('back2').addEventListener('click', () => showStep(1));
+  document.getElementById('next2').addEventListener('click', () => showStep(3));
+  document.getElementById('back3').addEventListener('click', () => showStep(2));
+  document.getElementById('next3').addEventListener('click', () => {
+    document.getElementById('obSummary').innerHTML = `
+      <div class="ob-summary-row"><span class="k">Location</span><span class="v">${onboarding.locationLabel}</span></div>
+      <div class="ob-summary-row"><span class="k">Role</span><span class="v">${onboarding.role}</span></div>
+      <div class="ob-summary-row"><span class="k">Experience</span><span class="v">${onboarding.experience}</span></div>
+      <div class="ob-summary-row"><span class="k">Situation</span><span class="v">${onboarding.situation}</span></div>
+    `;
+    showStep(4);
+  });
+  document.getElementById('back4').addEventListener('click', () => showStep(3));
+
+  document.getElementById('finishOnboarding').addEventListener('click', () => {
+    localStorage.setItem('jobapplyz_onboarding', JSON.stringify(onboarding));
+    goToDashboard();
+  });
+
+  function goToDashboard() {
+    document.getElementById('view-onboarding').style.display = 'none';
+    document.getElementById('view-dashboard').style.display = 'block';
+    document.getElementById('greetText').textContent = `Looking for ${onboarding.role} roles in ${onboarding.locationLabel}`;
+    document.getElementById('greetSub').textContent = `${onboarding.experience} · ${onboarding.situation}`;
+  }
+
+  document.getElementById('editPrefsBtn').addEventListener('click', () => {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-onboarding').style.display = 'flex';
+    showStep(0);
+  });
+
+  // Resume returning users straight to dashboard if they already onboarded
+  const saved = localStorage.getItem('jobapplyz_onboarding');
+  if (saved) {
+    Object.assign(onboarding, JSON.parse(saved));
+    goToDashboard();
+  } else {
+    showStep(0);
+  }
+
+  /* ---------- Toast for "coming soon" tools ---------- */
+  const toast = document.getElementById('toast');
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  document.querySelectorAll('.tool-card[data-tool="soon"]').forEach(card => {
+    card.addEventListener('click', () => showToast(`${card.querySelector('.tool-name').textContent} is coming soon.`));
+  });
+  document.querySelector('.tool-card[data-tool="resume"]').addEventListener('click', () => {
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  document.querySelector('.tool-card[data-tool="builder"]').addEventListener('click', () => openBuilder());
+
+  /* ---------- AI Resume Builder (split-screen editor) ---------- */
+  const builderData = { experience: [], education: [], skills: [], languages: [] };
+  let selectedPath = null;
+  let selectedTemplate = 'ats';
+  let editorStep = 0;
+  const EDITOR_TOTAL_STEPS = 4;
+  const EDITOR_LABELS = ['Personal Info', 'Work Experience', 'Education', 'Skills & Languages'];
+  let currentEntryBullets = [];
+
+  function openBuilder() {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-onboarding').style.display = 'none';
+    document.getElementById('view-builder').style.display = 'block';
+    showBuilderStep('choice');
+  }
+  document.getElementById('builderBackBtn').addEventListener('click', () => {
+    document.getElementById('view-builder').style.display = 'none';
+    document.getElementById('view-dashboard').style.display = 'block';
+  });
+
+  function showBuilderStep(name) {
+    document.querySelectorAll('#view-builder > main > .b-view').forEach(v => v.classList.remove('active'));
+    document.querySelector(`.b-view[data-bstep="${name}"]`).classList.add('active');
+    if (name === 'editor') { showEditorStep(0); updateLivePreview(); updateCompleteness(); }
+  }
+
+  /* ---- Phase 1: choice ---- */
+  function selectPath(path) {
+    selectedPath = path;
+    document.getElementById('choiceScratch').classList.toggle('selected', path === 'scratch');
+    document.getElementById('choiceUpload').classList.toggle('selected', path === 'upload');
+    const zone = document.getElementById('uploadZoneWrap');
+    if (path === 'upload') {
+      zone.style.display = 'block';
+    } else {
+      zone.style.display = 'none';
+      showBuilderStep('templates');
+    }
+  }
+
+  const dropZone = document.getElementById('dropZone');
+  const builderFileInput = document.getElementById('builderFileInput');
+  ['dragover', 'dragenter'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+  ['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+  dropZone.addEventListener('drop', (e) => {
+    if (e.dataTransfer.files.length) { builderFileInput.files = e.dataTransfer.files; handleBuilderUpload(); }
+  });
+  builderFileInput.addEventListener('change', handleBuilderUpload);
+
+  async function handleBuilderUpload() {
+    const file = builderFileInput.files[0];
+    if (!file) return;
+    document.getElementById('builderUploadFilename').textContent = 'Selected: ' + file.name;
+    const statusEl = document.getElementById('builderUploadStatus');
+    statusEl.classList.add('show');
+
+    const formData = new FormData();
+    formData.append('resume', file);
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      statusEl.classList.remove('show');
+      if (data.success) {
+        const d = data.data;
+        builderData.full_name = d.full_name || '';
+        builderData.email = d.email || '';
+        builderData.phone = d.phone || '';
+        builderData.target_role = (d.job_titles && d.job_titles[0]) || '';
+        builderData.skills = d.skills || [];
+        if (d.job_titles && d.job_titles[0]) {
+          builderData.experience = [{ title: d.job_titles[0], company: '', dates: '', bullets: [] }];
+        }
+        showToast('Resume imported — review and improve each section.');
+        showBuilderStep('templates');
+      } else {
+        showToast('Error: ' + data.error);
+      }
+    } catch (err) {
+      statusEl.classList.remove('show');
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  /* ---- Phase 2: template gallery ---- */
+  function selectTemplateFromGallery(tpl) {
+    selectedTemplate = tpl;
+    const preview = document.getElementById('resumePreview');
+    preview.className = 'resume-preview tpl-' + tpl;
+    showBuilderStep('editor');
+  }
+
+  /* ---- Phase 3: split-screen editor ---- */
+  function showEditorStep(n) {
+    document.querySelectorAll('.estep').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.estep[data-estep="${n}"]`).classList.add('active');
+    editorStep = n;
+
+    document.getElementById('progressStepLabel').textContent = `Step ${n + 1} of ${EDITOR_TOTAL_STEPS} — ${EDITOR_LABELS[n]}`;
+    const pct = Math.round(((n + 1) / EDITOR_TOTAL_STEPS) * 100);
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressBarFill').style.width = pct + '%';
+
+    document.getElementById('estepBackBtn').style.visibility = n === 0 ? 'hidden' : 'visible';
+    document.getElementById('estepNextBtn').textContent = n === EDITOR_TOTAL_STEPS - 1 ? "I'm done ✓" : 'Continue';
+  }
+
+  function captureCurrentStepFields() {
+    if (editorStep === 0) {
+      builderData.full_name = document.getElementById('bName').value.trim();
+      builderData.email = document.getElementById('bEmail').value.trim();
+      builderData.phone = document.getElementById('bPhone').value.trim();
+      builderData.location = document.getElementById('bLocation').value.trim();
+      builderData.linkedin = document.getElementById('bLinkedin').value.trim();
+      builderData.target_role = document.getElementById('bTargetRole').value.trim();
+    }
+  }
+
+  function editorNext() {
+    captureCurrentStepFields();
+    if (editorStep < EDITOR_TOTAL_STEPS - 1) showEditorStep(editorStep + 1);
+    else toggleMobilePreview(true);
+  }
+  function editorBack() {
+    captureCurrentStepFields();
+    if (editorStep > 0) showEditorStep(editorStep - 1);
+  }
+
+  function onFieldInput() {
+    captureCurrentStepFields();
+    updateLivePreview();
+    updateCompleteness();
+  }
+
+  /* ---- AI predictive suggestions for experience bullets ---- */
+  async function generateExpBullets(mode) {
+    const jobTitle = document.getElementById('expTitle').value.trim() || builderData.target_role || 'this role';
+    const rawInput = document.getElementById('expRaw').value.trim();
+    const previewEl = document.getElementById('expBulletsPreview');
+    if (!rawInput) { showToast('Add a few notes about this job first.'); return; }
+    previewEl.innerHTML = '<div class="status-line show"><div class="spinner"></div> Working on it...</div>';
+
+    try {
+      const res = await fetch('/resume-builder/bullets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_title: jobTitle, raw_input: rawInput, mode: mode })
+      });
+      const data = await res.json();
+      if (data.success) {
+        let html = '<div class="suggest-panel"><div class="suggest-panel-label">AI Suggestions — click + to add</div>';
+        if (data.feedback) html += `<div class="recruiter-feedback"><strong>Recruiter note:</strong> ${data.feedback}</div>`;
+        html += data.bullets.map((b, i) => `
+          <div class="suggest-item">
+            <span>${b}</span>
+            <button class="suggest-add-btn" onclick="addSuggestedBullet(${JSON.stringify(b)})">+ Add</button>
+          </div>
+        `).join('');
+        html += '</div>';
+        previewEl.innerHTML = html;
+      } else {
+        previewEl.innerHTML = `<div style="color:#c0392b; font-size:13px;">Error: ${data.error}</div>`;
+      }
+    } catch (err) {
+      previewEl.innerHTML = `<div style="color:#c0392b; font-size:13px;">Error: ${err.message}</div>`;
+    }
+  }
+
+  function addSuggestedBullet(bullet) {
+    currentEntryBullets.push(bullet);
+    showToast("Added to that job's bullet list.");
+  }
+
+  function addExperienceEntry() {
+    const title = document.getElementById('expTitle').value.trim();
+    const company = document.getElementById('expCompany').value.trim();
+    const dates = document.getElementById('expDates').value.trim();
+    if (!title) { showToast('Add a job title first.'); return; }
+
+    builderData.experience.push({ title, company, dates, bullets: currentEntryBullets.length ? [...currentEntryBullets] : [] });
+    renderExperienceEntries();
+    updateLivePreview();
+    updateCompleteness();
+
+    document.getElementById('expTitle').value = '';
+    document.getElementById('expCompany').value = '';
+    document.getElementById('expDates').value = '';
+    document.getElementById('expRaw').value = '';
+    document.getElementById('expBulletsPreview').innerHTML = '';
+    currentEntryBullets = [];
+  }
+
+  function renderExperienceEntries() {
+    const el = document.getElementById('experienceEntries');
+    el.innerHTML = builderData.experience.map((exp, i) => `
+      <div class="entry-card">
+        <div class="entry-head">
+          <div class="entry-title">${exp.title}${exp.company ? ' — ' + exp.company : ''} ${exp.dates ? '· ' + exp.dates : ''}</div>
+          <button class="entry-remove" onclick="removeExperience(${i})">Remove</button>
+        </div>
+        ${exp.bullets.length ? '<ul class="bullet-list">' + exp.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>' : ''}
+      </div>
+    `).join('');
+  }
+  function removeExperience(i) { builderData.experience.splice(i, 1); renderExperienceEntries(); updateLivePreview(); updateCompleteness(); }
+
+  function addEducationEntry() {
+    const degree = document.getElementById('eduDegree').value.trim();
+    const institution = document.getElementById('eduInstitution').value.trim();
+    const year = document.getElementById('eduYear').value.trim();
+    if (!degree) { showToast('Add a degree first.'); return; }
+    builderData.education.push({ degree, institution, year });
+    renderEducationEntries();
+    updateLivePreview();
+    updateCompleteness();
+    document.getElementById('eduDegree').value = '';
+    document.getElementById('eduInstitution').value = '';
+    document.getElementById('eduYear').value = '';
+  }
+  function renderEducationEntries() {
+    const el = document.getElementById('educationEntries');
+    el.innerHTML = builderData.education.map((edu, i) => `
+      <div class="entry-card">
+        <div class="entry-head">
+          <div class="entry-title">${edu.degree}${edu.institution ? ' — ' + edu.institution : ''} ${edu.year ? '· ' + edu.year : ''}</div>
+          <button class="entry-remove" onclick="removeEducation(${i})">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  function removeEducation(i) { builderData.education.splice(i, 1); renderEducationEntries(); updateLivePreview(); updateCompleteness(); }
+
+  function addSkill() {
+    const input = document.getElementById('skillInput');
+    const val = input.value.trim();
+    if (!val) return;
+    if (!builderData.skills.includes(val)) builderData.skills.push(val);
+    input.value = '';
+    renderSkillChips();
+    updateLivePreview();
+    updateCompleteness();
+  }
+  document.getElementById('skillInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } });
+  function renderSkillChips() {
+    document.getElementById('skillChips').innerHTML = builderData.skills.map((s, i) => `<span class="chip" style="cursor:pointer;" onclick="removeSkill(${i})">${s} ✕</span>`).join('');
+  }
+  function removeSkill(i) { builderData.skills.splice(i, 1); renderSkillChips(); updateLivePreview(); updateCompleteness(); }
+
+  function addLanguage() {
+    const input = document.getElementById('langInput');
+    const val = input.value.trim();
+    if (!val) return;
+    if (!builderData.languages.includes(val)) builderData.languages.push(val);
+    input.value = '';
+    renderLangChips();
+    updateLivePreview();
+  }
+  document.getElementById('langInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addLanguage(); } });
+  function renderLangChips() {
+    document.getElementById('langChips').innerHTML = builderData.languages.map((s, i) => `<span class="chip" style="cursor:pointer;" onclick="removeLanguage(${i})">${s} ✕</span>`).join('');
+  }
+  function removeLanguage(i) { builderData.languages.splice(i, 1); renderLangChips(); updateLivePreview(); }
+
+  async function generateBuilderSummary() {
+    const statusEl = document.getElementById('summaryStatus');
+    statusEl.classList.add('show');
+    try {
+      const res = await fetch('/resume-builder/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(builderData)
+      });
+      const data = await res.json();
+      statusEl.classList.remove('show');
+      if (data.success) {
+        builderData.summary = data.summary;
+        updateLivePreview();
+        updateCompleteness();
+      } else {
+        showToast('Error generating summary: ' + data.error);
+      }
+    } catch (err) {
+      statusEl.classList.remove('show');
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function scoreIcon(status) {
+    if (status === 'pass') return '✅';
+    if (status === 'warning') return '⚠️';
+    return '❌';
+  }
+
+  async function checkAtsScore() {
+    const statusEl = document.getElementById('atsStatus');
+    const resultEl = document.getElementById('atsResultCard');
+    statusEl.classList.add('show');
+    resultEl.innerHTML = '';
+    try {
+      const res = await fetch('/resume-builder/ats-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(builderData)
+      });
+      const data = await res.json();
+      statusEl.classList.remove('show');
+      if (data.success) {
+        const r = data.result;
+        const scoreColor = r.score >= 70 ? 'var(--emerald)' : r.score >= 40 ? 'var(--amber)' : '#c0392b';
+        resultEl.innerHTML = `
+          <div class="ats-card">
+            <div class="ats-score-row">
+              <div class="ats-score-num" style="color:${scoreColor};">${r.score}</div>
+              <div class="ats-score-label">ATS Compatibility Score<br>out of 100</div>
+            </div>
+            ${r.checks.map(c => `
+              <div class="ats-check-row">
+                <div class="ats-icon">${scoreIcon(c.status)}</div>
+                <div><div class="ats-check-label">${c.label}</div><div class="ats-check-note">${c.note}</div></div>
+              </div>
+            `).join('')}
+            ${r.note ? `<div class="mock-note" style="margin-top:14px;">${r.note}</div>` : ''}
+          </div>
+        `;
+      } else {
+        showToast('Error checking ATS score: ' + data.error);
+      }
+    } catch (err) {
+      statusEl.classList.remove('show');
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  /* ---- Live completeness score (client-side, instant) ---- */
+  function updateCompleteness() {
+    let points = 0;
+    const max = 10;
+    let biggestGapTip = '';
+
+    if (builderData.full_name && builderData.email && builderData.phone) points += 3;
+    else biggestGapTip = 'Add your name, email, and phone number.';
+
+    if (builderData.target_role) points += 1;
+    else if (!biggestGapTip) biggestGapTip = 'Add the role you are targeting.';
+
+    const expBulletCount = (builderData.experience || []).reduce((sum, e) => sum + e.bullets.length, 0);
+    if (builderData.experience && builderData.experience.length && expBulletCount >= 2) points += 2;
+    else if (!biggestGapTip) biggestGapTip = 'Add work experience with a few bullet points.';
+
+    if (builderData.education && builderData.education.length) points += 1;
+    else if (!biggestGapTip) biggestGapTip = 'Add your education.';
+
+    if (builderData.skills && builderData.skills.length >= 3) points += 2;
+    else if (!biggestGapTip) biggestGapTip = 'Add at least 3 skills.';
+
+    if (builderData.summary) points += 1;
+    else if (!biggestGapTip) biggestGapTip = 'Generate an AI summary to finish strong.';
+
+    const pct = Math.round((points / max) * 100);
+    const ring = document.getElementById('completenessRing');
+    const text = document.getElementById('completenessText');
+    const color = pct >= 80 ? 'var(--emerald)' : pct >= 40 ? 'var(--amber)' : '#c0392b';
+    ring.style.background = color;
+    ring.textContent = pct + '%';
+    text.innerHTML = pct >= 90
+      ? '<strong>Looking great!</strong> Your resume is ready to download.'
+      : `<strong>${pct}% complete.</strong> ${biggestGapTip}`;
+  }
+
+  function toggleMobilePreview(forceOpen) {
+    const col = document.getElementById('previewCol');
+    if (forceOpen === true) col.classList.add('mobile-open');
+    else col.classList.toggle('mobile-open');
+  }
+
+  /* ---- Live preview renderer (syncs on every change) ---- */
+  function updateLivePreview() {
+    const d = builderData;
+    const contactParts = [d.email, d.phone, d.location, d.linkedin].filter(Boolean);
+    let html = `
+      <div class="rp-name">${d.full_name || '<span class="rp-placeholder">Your Name</span>'}</div>
+      <div class="rp-contact">${contactParts.length ? contactParts.join(' · ') : '<span class="rp-placeholder">Contact details will appear here</span>'}</div>
+    `;
+    if (d.summary) {
+      html += `<div class="rp-section-title">Summary</div><div class="rp-summary">${d.summary}</div>`;
+    }
+    if (d.skills && d.skills.length) {
+      html += `<div class="rp-section-title">Skills</div><div class="rp-skills">${d.skills.map(s => `<span>${s}</span>`).join('<span class="rp-skill-sep">, </span>')}</div>`;
+    }
+    if (d.experience && d.experience.length) {
+      html += `<div class="rp-section-title">Work Experience</div>`;
+      d.experience.forEach(exp => {
+        html += `<div class="rp-entry">
+          <div class="rp-entry-head"><span>${exp.title}</span><span>${exp.dates || ''}</span></div>
+          <div class="rp-entry-sub">${exp.company || ''}</div>
+          ${exp.bullets.length ? '<ul>' + exp.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>' : ''}
+        </div>`;
+      });
+    }
+    if (d.education && d.education.length) {
+      html += `<div class="rp-section-title">Education</div>`;
+      d.education.forEach(edu => {
+        html += `<div class="rp-entry">
+          <div class="rp-entry-head"><span>${edu.degree}</span><span>${edu.year || ''}</span></div>
+          <div class="rp-entry-sub">${edu.institution || ''}</div>
+        </div>`;
+      });
+    }
+    if (d.languages && d.languages.length) {
+      html += `<div class="rp-section-title">Languages</div><div class="rp-skills">${d.languages.join(', ')}</div>`;
+    }
+    document.getElementById('resumePreview').innerHTML = html;
+  }
+
+  /* ---------- Resume upload / match / cover letter (existing flow) ---------- */
+  const fileInput = document.getElementById('fileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const filenameDiv = document.getElementById('filename');
+  const statusDiv = document.getElementById('status');
+  const profileCardWrap = document.getElementById('profileCardWrap');
+  const matchSection = document.getElementById('matchSection');
+  const matchBtn = document.getElementById('matchBtn');
+  const matchStatus = document.getElementById('matchStatus');
+  const jobsSection = document.getElementById('jobsSection');
+  let selectedFile = null;
+  let parsedResumeData = null;
+
+  fileInput.addEventListener('change', (e) => {
+    selectedFile = e.target.files[0];
+    filenameDiv.textContent = selectedFile ? 'Selected: ' + selectedFile.name : '';
+    uploadBtn.disabled = !selectedFile;
+  });
+
+  function renderProfileCard(data) {
+    const isMock = (data.summary || '').includes('Mock mode');
+    const cleanSummary = (data.summary || '').replace(/\(Mock mode:.*?\)/, '').trim();
+    const skillsHtml = (data.skills && data.skills.length) ? `<div class="field-label">Skills</div><div class="chip-row">${data.skills.map(s => `<span class="chip">${s}</span>`).join('')}</div>` : '';
+    const titlesHtml = (data.job_titles && data.job_titles.length) ? `<div class="field-label">Role</div><div class="chip-row">${data.job_titles.map(t => `<span class="chip">${t}</span>`).join('')}</div>` : '';
+
+    profileCardWrap.innerHTML = `
+      <div class="card">
+        <span class="card-label">Parsed profile</span>
+        <div class="profile-head">
+          <div>
+            <div class="profile-name">${data.full_name || 'Name not found'}</div>
+            <div class="profile-contact">${[data.email, data.phone].filter(Boolean).join(' · ')}</div>
+          </div>
+        </div>
+        ${cleanSummary ? `<div class="profile-summary">${cleanSummary}</div>` : ''}
+        ${titlesHtml}
+        ${skillsHtml}
+        ${isMock ? '<div class="mock-note">⚡ Running in Mock Mode — lightweight keyword extraction, not full AI parsing yet.</div>' : ''}
+      </div>
+    `;
+  }
+
+  uploadBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    uploadBtn.disabled = true;
+    statusDiv.classList.add('show');
+    profileCardWrap.innerHTML = '';
+    matchSection.style.display = 'none';
+    jobsSection.innerHTML = '';
+
+    const formData = new FormData();
+    formData.append('resume', selectedFile);
+
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      statusDiv.classList.remove('show');
+      if (data.success) {
+        parsedResumeData = data.data;
+        renderProfileCard(data.data);
+        matchSection.style.display = 'block';
+      } else {
+        profileCardWrap.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${data.error}</div>`;
+      }
+    } catch (err) {
+      statusDiv.classList.remove('show');
+      profileCardWrap.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${err.message}</div>`;
+    }
+    uploadBtn.disabled = false;
+  });
+
+  function scoreClass(score) {
+    if (score >= 60) return 'score-high';
+    if (score >= 30) return 'score-mid';
+    return 'score-low';
+  }
+
+  matchBtn.addEventListener('click', async () => {
+    if (!parsedResumeData) return;
+    matchBtn.disabled = true;
+    matchStatus.classList.add('show');
+    jobsSection.innerHTML = '';
+
+    try {
+      const res = await fetch('/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume: parsedResumeData,
+          preferred_query: onboarding.role || null,
+          preferred_country: onboarding.location || null
+        })
+      });
+      const data = await res.json();
+      matchStatus.classList.remove('show');
+
+      if (data.success) {
+        window.currentJobs = data.jobs;
+        if (data.jobs.length === 0) {
+          jobsSection.innerHTML = '<div class="section-title">Matching jobs</div><div class="card empty-state">No jobs found for this search right now. Try a different resume or check back later.</div>';
+          return;
+        }
+        jobsSection.innerHTML = '<div class="section-title">Matching jobs</div>' + data.jobs.map((job, i) => `
+          <div class="job-card">
+            <div class="job-row">
+              <div>
+                <div class="job-title">${job.title}</div>
+                <div class="job-company">${job.company}${job.source ? ' · ' + job.source : ''}</div>
+                <div class="job-loc">${job.location || ''}</div>
+              </div>
+              <div class="score-pill ${scoreClass(job.match_score)}">${job.match_score}% match</div>
+            </div>
+            <div class="job-reason">${job.match_reason}</div>
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+              <button class="btn-outline" onclick="generateCoverLetter(${i})">Generate Cover Letter</button>
+              <button class="btn-outline" onclick="tailorResume(${i})">Tailor My Resume</button>
+            </div>
+            <div class="cl-box" id="cl-box-${i}"></div>
+            <div class="cl-box" id="tailor-box-${i}"></div>
+          </div>
+        `).join('');
+      } else {
+        jobsSection.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${data.error}</div>`;
+      }
+    } catch (err) {
+      matchStatus.classList.remove('show');
+      jobsSection.innerHTML = `<div class="card" style="color:#c0392b;">Error: ${err.message}</div>`;
+    }
+    matchBtn.disabled = false;
+  });
+
+  async function tailorResume(index) {
+    const job = window.currentJobs[index];
+    const box = document.getElementById('tailor-box-' + index);
+    box.classList.add('show');
+    box.textContent = 'Tailoring your resume for this role...';
+
+    try {
+      const res = await fetch('/resume-tailor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: parsedResumeData, job: job })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const t = data.tailored;
+        let html = `<strong>Tailored summary:</strong><br>${t.tailored_summary}<br><br>`;
+        if (t.highlighted_skills && t.highlighted_skills.length) {
+          html += `<strong>Highlight these skills first:</strong><br>${t.highlighted_skills.join(', ')}<br><br>`;
+        }
+        if (t.suggested_bullet_points && t.suggested_bullet_points.length) {
+          html += `<strong>Suggested bullet points:</strong><ul style="margin:6px 0 0 18px;">${t.suggested_bullet_points.map(b => `<li>${b}</li>`).join('')}</ul><br>`;
+        }
+        if (t.note) {
+          html += `<em style="font-size:12px; color:var(--ink-soft);">${t.note}</em>`;
+        }
+        box.innerHTML = html;
+      } else {
+        box.textContent = 'Error: ' + data.error;
+      }
+    } catch (err) {
+      box.textContent = 'Error: ' + err.message;
+    }
+  }
+
+  async function generateCoverLetter(index) {
+    const job = window.currentJobs[index];
+    const box = document.getElementById('cl-box-' + index);
+    box.classList.add('show');
+    box.textContent = 'Writing your cover letter...';
+
+    try {
+      const res = await fetch('/cover-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: parsedResumeData, job: job })
+      });
+      const data = await res.json();
+      if (data.success) {
+        box.textContent = data.cover_letter;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btn-dark';
+        copyBtn.style.marginTop = '10px';
+        copyBtn.textContent = 'Copy to clipboard';
+        copyBtn.onclick = () => navigator.clipboard.writeText(data.cover_letter);
+        box.appendChild(document.createElement('br'));
+        box.appendChild(copyBtn);
+      } else {
+        box.textContent = 'Error: ' + data.error;
+      }
+    } catch (err) {
+      box.textContent = 'Error: ' + err.message;
+    }
+  }
+</script>
+
+</body>
+</html>
