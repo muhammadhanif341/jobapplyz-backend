@@ -247,6 +247,38 @@
   .resume-preview.tpl-european .rp-contact{text-align:center;}
   .resume-preview.tpl-european .rp-section-title{text-align:center; letter-spacing:0.12em; border-bottom:none; border-top:1px solid #ccc; padding-top:10px;}
 
+  /* Classic — traditional serif, formal, black & white */
+  .resume-preview.tpl-classic{font-family:Georgia, 'Times New Roman', serif;}
+  .resume-preview.tpl-classic .rp-name{font-family:Georgia, serif; letter-spacing:0.01em;}
+  .resume-preview.tpl-classic .rp-section-title{font-family:Georgia, serif; text-transform:none; font-size:13px; border-bottom:1px solid #1a1a1a;}
+
+  /* Bold — dark header band behind name */
+  .resume-preview.tpl-bold{padding:0;}
+  .resume-preview.tpl-bold .rp-name, .resume-preview.tpl-bold .rp-contact{
+    background:#1a1a2e; color:white; padding:24px 32px 4px; margin:0;
+  }
+  .resume-preview.tpl-bold .rp-contact{padding-top:0; padding-bottom:24px; color:#c9c9d9;}
+  .resume-preview.tpl-bold > div:not(.rp-name):not(.rp-contact){padding-left:32px; padding-right:32px;}
+  .resume-preview.tpl-bold .rp-section-title{color:#e94560; border-bottom-color:#e94560;}
+
+  /* Minimalist — lots of whitespace, thin lines, muted */
+  .resume-preview.tpl-minimalist{padding:44px;}
+  .resume-preview.tpl-minimalist .rp-name{font-weight:500; letter-spacing:0.04em;}
+  .resume-preview.tpl-minimalist .rp-section-title{border-bottom:none; color:#999; font-weight:500; letter-spacing:0.08em;}
+  .resume-preview.tpl-minimalist .rp-entry-head{font-weight:400;}
+
+  /* Creative — teal accent bar + icon-style bullets */
+  .resume-preview.tpl-creative{border-left:5px solid #0d9488; padding-left:28px;}
+  .resume-preview.tpl-creative .rp-name{color:#0d9488;}
+  .resume-preview.tpl-creative .rp-section-title{border-bottom-color:#0d9488; color:#0d9488;}
+  .resume-preview.tpl-creative .rp-skills span{background:#e6fffa; color:#0d9488; padding:3px 10px; border-radius:20px; font-size:11px; display:inline-block; margin:2px 0;}
+  .resume-preview.tpl-creative .rp-skills .rp-skill-sep{display:none;}
+
+  /* Executive — navy + gold, formal for senior roles */
+  .resume-preview.tpl-executive .rp-name{color:#0b3d3b; text-transform:uppercase; letter-spacing:0.03em; font-size:19px;}
+  .resume-preview.tpl-executive .rp-section-title{color:#0b3d3b; border-bottom:2px solid #c9a227; text-transform:uppercase;}
+  .resume-preview.tpl-executive .rp-entry-head{font-weight:700;}
+
   /* ---- Phase 1: choice screen ---- */
   .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:640px;}
   .choice-card{
@@ -593,6 +625,72 @@
         <div class="tpl-gbody">
           <div class="tpl-gname">ATS</div>
           <div class="tpl-gdesc">Text-first, maximum readability — best odds of passing automated screening.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('classic')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:#444;">Classic</span>
+          <div class="mini-name" style="font-family:Georgia,serif;">John Doe</div>
+          <div class="mini-line short"></div>
+          <div class="mini-line" style="margin-top:14px;"></div>
+          <div class="mini-line"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Classic</div>
+          <div class="tpl-gdesc">Traditional serif styling — a formal choice for law, finance, and academia.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('bold')">
+        <div class="tpl-gpreview" style="background:#1a1a2e; padding:16px;">
+          <span class="tpl-badge" style="background:#e94560;">Bold</span>
+          <div class="mini-name" style="color:white; margin-top:26px;">John Doe</div>
+          <div class="mini-line short" style="background:#3a3a5c;"></div>
+          <div class="mini-line" style="margin-top:14px; background:#3a3a5c;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Bold</div>
+          <div class="tpl-gdesc">Dark header band makes your name the focal point — stands out in a stack.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('minimalist')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:#999;">Minimalist</span>
+          <div class="mini-name" style="letter-spacing:0.04em;">John Doe</div>
+          <div class="mini-line short" style="background:#f0f0f0;"></div>
+          <div class="mini-line" style="margin-top:18px; background:#f0f0f0;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Minimalist</div>
+          <div class="tpl-gdesc">Lots of whitespace, thin lines, muted tones — lets your content speak.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('creative')">
+        <div class="tpl-gpreview" style="border-left:5px solid #0d9488; padding-left:11px;">
+          <span class="tpl-badge" style="background:#0d9488;">Creative</span>
+          <div class="mini-name" style="color:#0d9488;">John Doe</div>
+          <div class="mini-line short" style="background:#e6fffa;"></div>
+          <div class="mini-line" style="margin-top:14px; background:#e6fffa;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Creative</div>
+          <div class="tpl-gdesc">Teal accent bar and pill-style skills — for design, marketing &amp; media roles.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('executive')">
+        <div class="tpl-gpreview">
+          <span class="tpl-badge" style="background:#0b3d3b;">Executive</span>
+          <div class="mini-name" style="color:#0b3d3b; text-transform:uppercase;">John Doe</div>
+          <div class="mini-line short" style="background:#c9a227;"></div>
+          <div class="mini-line" style="margin-top:14px;"></div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Executive</div>
+          <div class="tpl-gdesc">Navy &amp; gold accents, formal spacing — built for senior and leadership roles.</div>
           <button class="tpl-use-btn">Use this template</button>
         </div>
       </div>
