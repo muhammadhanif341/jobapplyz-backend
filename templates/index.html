@@ -279,6 +279,38 @@
   .resume-preview.tpl-executive .rp-section-title{color:#0b3d3b; border-bottom:2px solid #c9a227; text-transform:uppercase;}
   .resume-preview.tpl-executive .rp-entry-head{font-weight:700;}
 
+  /* Photo upload */
+  .photo-preview{
+    width:64px; height:64px; border-radius:50%; background:var(--paper-dim); border:1.5px dashed var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0;
+  }
+  .photo-preview img{width:100%; height:100%; object-fit:cover;}
+
+  /* Resume preview: headline + achievements + photo (all templates) */
+  .rp-headline{font-size:12.5px; color:var(--violet); font-weight:600; margin-top:4px;}
+  .rp-photo{width:64px; height:64px; border-radius:50%; object-fit:cover; float:right; margin-left:14px;}
+  .rp-achievement-box{
+    background:var(--paper-dim); border-radius:8px; padding:10px 12px; margin-bottom:6px;
+    font-size:12px; display:flex; gap:8px; align-items:flex-start;
+  }
+  .rp-achievement-box .star{color:var(--amber); flex-shrink:0;}
+
+  /* ---- Two-column templates (Elegant / Split) ---- */
+  .resume-preview.two-col{display:grid; grid-template-columns:34% 1fr; gap:0; padding:0; overflow:hidden;}
+  .resume-preview.two-col .rp-sidebar{padding:28px 20px;}
+  .resume-preview.two-col .rp-main{padding:28px 24px;}
+  .resume-preview.two-col .rp-photo{float:none; margin:0 auto 14px; display:block;}
+  .resume-preview.two-col .rp-sidebar .rp-name{font-size:16px;}
+
+  .resume-preview.tpl-elegant .rp-sidebar{background:#1a1a2e; color:white;}
+  .resume-preview.tpl-elegant .rp-sidebar .rp-contact, .resume-preview.tpl-elegant .rp-sidebar .rp-skills{color:#c9c9d9;}
+  .resume-preview.tpl-elegant .rp-sidebar .rp-section-title{color:#e94560; border-bottom-color:#e94560;}
+  .resume-preview.tpl-elegant .rp-main .rp-section-title{border-bottom-color:#1a1a2e;}
+
+  .resume-preview.tpl-split .rp-sidebar{background:var(--emerald-soft);}
+  .resume-preview.tpl-split .rp-sidebar .rp-section-title{color:var(--emerald); border-bottom-color:var(--emerald);}
+  .resume-preview.tpl-split .rp-main .rp-section-title{border-bottom-color:var(--emerald);}
+
   /* ---- Phase 1: choice screen ---- */
   .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:640px;}
   .choice-card{
@@ -695,6 +727,51 @@
         </div>
       </div>
     </div>
+
+    <div style="margin:32px 0 18px;">
+      <div style="font-weight:700; font-size:14px;">Visually rich (two-column) templates</div>
+      <div style="font-size:12.5px; color:var(--ink-soft); margin-top:4px;">These use a genuine sidebar layout. Most modern ATS systems parse them fine, but a few older/simpler ones can struggle with column order — pick a single-column template above if you're applying somewhere very conservative or unsure.</div>
+    </div>
+    <div class="tpl-gallery">
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('elegant')">
+        <div class="tpl-gpreview" style="display:flex; gap:0; padding:0;">
+          <div style="background:#1a1a2e; width:38%; padding:14px;">
+            <div style="width:26px; height:26px; border-radius:50%; background:#3a3a5c; margin-bottom:8px;"></div>
+            <div class="mini-line" style="background:#3a3a5c; width:80%;"></div>
+            <div class="mini-line short" style="background:#3a3a5c;"></div>
+          </div>
+          <div style="flex:1; padding:14px;">
+            <span class="tpl-badge" style="position:static; display:inline-block; background:var(--ink); margin-bottom:8px;">Elegant</span>
+            <div class="mini-line"></div>
+            <div class="mini-line short"></div>
+          </div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Elegant <span style="font-size:10px; color:var(--amber); font-weight:700;">⚠ 2-column</span></div>
+          <div class="tpl-gdesc">Dark sidebar with photo, contact &amp; skills; main column for experience.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+      <div class="tpl-gcard" onclick="selectTemplateFromGallery('split')">
+        <div class="tpl-gpreview" style="display:flex; gap:0; padding:0;">
+          <div style="background:var(--emerald-soft); width:38%; padding:14px;">
+            <div style="width:26px; height:26px; border-radius:50%; background:#b7e4d4; margin-bottom:8px;"></div>
+            <div class="mini-line" style="background:#b7e4d4; width:80%;"></div>
+            <div class="mini-line short" style="background:#b7e4d4;"></div>
+          </div>
+          <div style="flex:1; padding:14px;">
+            <span class="tpl-badge" style="position:static; display:inline-block; background:var(--emerald); margin-bottom:8px;">Split</span>
+            <div class="mini-line"></div>
+            <div class="mini-line short"></div>
+          </div>
+        </div>
+        <div class="tpl-gbody">
+          <div class="tpl-gname">Split <span style="font-size:10px; color:var(--amber); font-weight:700;">⚠ 2-column</span></div>
+          <div class="tpl-gdesc">Light emerald sidebar — softer, friendlier take on the two-column layout.</div>
+          <button class="tpl-use-btn">Use this template</button>
+        </div>
+      </div>
+    </div>
     <button class="builder-back" style="margin-top:20px;" onclick="showBuilderStep('choice')">← Back</button>
   </div>
 
@@ -714,6 +791,18 @@
         <!-- E0: Personal Info -->
         <div class="estep active" data-estep="0">
           <div class="card">
+            <span class="card-label">Photo (optional)</span>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="photo-preview" id="photoPreview">📷</div>
+              <div>
+                <button class="btn-outline" onclick="document.getElementById('photoInput').click()">Upload photo</button>
+                <button class="btn-outline" id="removePhotoBtn" style="display:none; margin-left:6px;" onclick="removePhoto()">Remove</button>
+                <input type="file" id="photoInput" accept="image/*" style="display:none;">
+                <div style="font-size:11.5px; color:var(--ink-soft); margin-top:6px;">Some employers/regions prefer no photo — optional either way.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
             <span class="card-label">Personal information</span>
             <div class="b-label">Full name</div>
             <input class="b-input" id="bName" oninput="onFieldInput()" placeholder="Muhammad Hanif">
@@ -727,7 +816,18 @@
             </div>
             <div class="b-label">Target role</div>
             <input class="b-input" id="bTargetRole" oninput="onFieldInput()" placeholder="e.g. Production Manager">
+            <div class="b-label">Headline (optional)</div>
+            <input class="b-input" id="bHeadline" oninput="onFieldInput()" placeholder="e.g. Operations Leader | Team Building | Cost Reduction">
             <div class="b-tip">💡 Tip: Adding a target role helps our AI tailor your summary and bullet points.</div>
+          </div>
+          <div class="card">
+            <span class="card-label">Key achievements (optional)</span>
+            <div class="skill-input-row">
+              <input class="b-input" id="achievementInput" placeholder="e.g. Grew revenue by 30% in 2 years">
+              <button class="add-skill-btn" onclick="addAchievement()">Add</button>
+            </div>
+            <div class="chip-row" id="achievementChips"></div>
+            <div class="b-tip">💡 Tip: 2-4 punchy highlights make a strong first impression before recruiters read the details.</div>
           </div>
         </div>
 
@@ -933,7 +1033,7 @@
   document.querySelector('.tool-card[data-tool="builder"]').addEventListener('click', () => openBuilder());
 
   /* ---------- AI Resume Builder (split-screen editor) ---------- */
-  const builderData = { experience: [], education: [], skills: [], languages: [] };
+  const builderData = { experience: [], education: [], skills: [], languages: [], achievements: [] };
   let selectedPath = null;
   let selectedTemplate = 'ats';
   let editorStep = 0;
@@ -1016,10 +1116,11 @@
   }
 
   /* ---- Phase 2: template gallery ---- */
+  const TWO_COL_TEMPLATES = ['elegant', 'split'];
   function selectTemplateFromGallery(tpl) {
     selectedTemplate = tpl;
     const preview = document.getElementById('resumePreview');
-    preview.className = 'resume-preview tpl-' + tpl;
+    preview.className = 'resume-preview tpl-' + tpl + (TWO_COL_TEMPLATES.includes(tpl) ? ' two-col' : '');
     showBuilderStep('editor');
   }
 
@@ -1046,8 +1147,47 @@
       builderData.location = document.getElementById('bLocation').value.trim();
       builderData.linkedin = document.getElementById('bLinkedin').value.trim();
       builderData.target_role = document.getElementById('bTargetRole').value.trim();
+      builderData.headline = document.getElementById('bHeadline').value.trim();
     }
   }
+
+  /* ---- Photo upload ---- */
+  document.getElementById('photoInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      builderData.photo = reader.result;
+      document.getElementById('photoPreview').innerHTML = `<img src="${reader.result}" alt="Profile photo">`;
+      document.getElementById('removePhotoBtn').style.display = 'inline-block';
+      updateLivePreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  function removePhoto() {
+    builderData.photo = null;
+    document.getElementById('photoPreview').innerHTML = '📷';
+    document.getElementById('removePhotoBtn').style.display = 'none';
+    document.getElementById('photoInput').value = '';
+    updateLivePreview();
+  }
+
+  /* ---- Key achievements ---- */
+  function addAchievement() {
+    const input = document.getElementById('achievementInput');
+    const val = input.value.trim();
+    if (!val) return;
+    builderData.achievements.push(val);
+    input.value = '';
+    renderAchievementChips();
+    updateLivePreview();
+    updateCompleteness();
+  }
+  document.getElementById('achievementInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addAchievement(); } });
+  function renderAchievementChips() {
+    document.getElementById('achievementChips').innerHTML = builderData.achievements.map((a, i) => `<span class="chip" style="cursor:pointer;" onclick="removeAchievement(${i})">🏆 ${a} ✕</span>`).join('');
+  }
+  function removeAchievement(i) { builderData.achievements.splice(i, 1); renderAchievementChips(); updateLivePreview(); updateCompleteness(); }
 
   function editorNext() {
     captureCurrentStepFields();
@@ -1307,13 +1447,25 @@
   }
 
   /* ---- Live preview renderer (syncs on every change) ---- */
+  function buildAchievementsHtml(d) {
+    if (!d.achievements || !d.achievements.length) return '';
+    return `<div class="rp-section-title">Key Achievements</div>` +
+      d.achievements.map(a => `<div class="rp-achievement-box"><span class="star">★</span><span>${a}</span></div>`).join('');
+  }
+
   function updateLivePreview() {
     const d = builderData;
+    if (TWO_COL_TEMPLATES.includes(selectedTemplate)) {
+      renderTwoColumnPreview(d);
+      return;
+    }
     const contactParts = [d.email, d.phone, d.location, d.linkedin].filter(Boolean);
-    let html = `
+    let html = `${d.photo ? `<img src="${d.photo}" class="rp-photo" alt="Photo">` : ''}
       <div class="rp-name">${d.full_name || '<span class="rp-placeholder">Your Name</span>'}</div>
+      ${d.headline ? `<div class="rp-headline">${d.headline}</div>` : ''}
       <div class="rp-contact">${contactParts.length ? contactParts.join(' · ') : '<span class="rp-placeholder">Contact details will appear here</span>'}</div>
     `;
+    html += buildAchievementsHtml(d);
     if (d.summary) {
       html += `<div class="rp-section-title">Summary</div><div class="rp-summary">${d.summary}</div>`;
     }
@@ -1343,6 +1495,45 @@
       html += `<div class="rp-section-title">Languages</div><div class="rp-skills">${d.languages.join(', ')}</div>`;
     }
     document.getElementById('resumePreview').innerHTML = html;
+  }
+
+  function renderTwoColumnPreview(d) {
+    const contactParts = [d.email, d.phone, d.location, d.linkedin].filter(Boolean);
+    let sidebar = `${d.photo ? `<img src="${d.photo}" class="rp-photo" alt="Photo">` : ''}
+      <div class="rp-name">${d.full_name || '<span class="rp-placeholder">Your Name</span>'}</div>
+      ${d.headline ? `<div class="rp-headline">${d.headline}</div>` : ''}
+      <div class="rp-contact">${contactParts.length ? contactParts.join('<br>') : '<span class="rp-placeholder">Contact details</span>'}</div>
+    `;
+    if (d.skills && d.skills.length) {
+      sidebar += `<div class="rp-section-title">Skills</div><div class="rp-skills">${d.skills.map(s => `<div>${s}</div>`).join('')}</div>`;
+    }
+    if (d.languages && d.languages.length) {
+      sidebar += `<div class="rp-section-title">Languages</div><div class="rp-skills">${d.languages.map(l => `<div>${l}</div>`).join('')}</div>`;
+    }
+    if (d.education && d.education.length) {
+      sidebar += `<div class="rp-section-title">Education</div>`;
+      d.education.forEach(edu => {
+        sidebar += `<div class="rp-entry"><div class="rp-entry-head"><span>${edu.degree}</span></div><div class="rp-entry-sub">${edu.institution || ''} ${edu.year || ''}</div></div>`;
+      });
+    }
+
+    let main = buildAchievementsHtml(d);
+    if (d.summary) {
+      main += `<div class="rp-section-title">Summary</div><div class="rp-summary">${d.summary}</div>`;
+    }
+    if (d.experience && d.experience.length) {
+      main += `<div class="rp-section-title">Work Experience</div>`;
+      d.experience.forEach(exp => {
+        main += `<div class="rp-entry">
+          <div class="rp-entry-head"><span>${exp.title}</span><span>${exp.dates || ''}</span></div>
+          <div class="rp-entry-sub">${exp.company || ''}</div>
+          ${exp.bullets.length ? '<ul>' + exp.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>' : ''}
+        </div>`;
+      });
+    }
+    if (!main) main = '<span class="rp-placeholder">Your summary and experience will appear here</span>';
+
+    document.getElementById('resumePreview').innerHTML = `<div class="rp-sidebar">${sidebar}</div><div class="rp-main">${main}</div>`;
   }
 
   /* ---------- Resume upload / match / cover letter (existing flow) ---------- */
